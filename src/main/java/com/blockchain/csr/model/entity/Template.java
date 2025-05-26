@@ -1,12 +1,17 @@
 package com.blockchain.csr.model.entity;
 
+import lombok.Data;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
 /**
  * @author zhangrucheng on 2025/5/19
  */
+@Entity
+@Data
 public class Template {
-    /**
-    * 
-    */
+    @Id
     private Integer id;
 
     /**
@@ -28,44 +33,4 @@ public class Template {
     * 
     */
     private String detail;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Integer getTotalTime() {
-        return totalTime;
-    }
-
-    public void setTotalTime(Integer totalTime) {
-        this.totalTime = totalTime;
-    }
-
-    public String getFileLink() {
-        return fileLink;
-    }
-
-    public void setFileLink(String fileLink) {
-        this.fileLink = fileLink;
-    }
-
-    public String getDetail() {
-        return detail;
-    }
-
-    public void setDetail(String detail) {
-        this.detail = detail;
-    }
 }

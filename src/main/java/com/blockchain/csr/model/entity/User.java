@@ -1,21 +1,20 @@
 package com.blockchain.csr.model.entity;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import javax.persistence.Entity;
+import javax.persistence.Id;
 
 /**
  * The type User.
  *
  * @author zhangrucheng on 2025/5/18
  */
-@Getter
-@Setter
+@Data
+@Entity
 public class User {
-    /**
-    * 
-    */
+
+    @Id
     private Integer id;
 
     /**

@@ -14,8 +14,17 @@ public interface UserService {
      *
      * @param userName the user name
      * @param password the password
+     * @throws IllegalArgumentException if user with the same username already exists
      */
     void createUser(String userName, String password);
+
+    /**
+     * Check if user exists by username.
+     *
+     * @param username the username
+     * @return true if user exists, false otherwise
+     */
+    boolean existsByUsername(String username);
 
     /**
      * Delete by primary key int.

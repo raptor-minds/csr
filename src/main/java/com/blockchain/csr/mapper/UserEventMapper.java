@@ -1,12 +1,15 @@
 package com.blockchain.csr.mapper;
 
 import com.blockchain.csr.model.entity.UserEvent;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * The interface User event mapper.
  *
  * @author zhangrucheng on 2025/5/19
  */
+
+@Mapper
 public interface UserEventMapper {
     /**
      * Delete by primary key int.

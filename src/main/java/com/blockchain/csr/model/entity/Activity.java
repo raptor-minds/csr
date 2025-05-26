@@ -1,12 +1,17 @@
 package com.blockchain.csr.model.entity;
 
+import lombok.Data;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
 /**
  * @author zhangrucheng on 2025/5/19
  */
+@Entity
+@Data
 public class Activity {
-    /**
-    * 
-    */
+    @Id
     private Integer id;
 
     /**
@@ -38,60 +43,4 @@ public class Activity {
     * 
     */
     private String description;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Integer getEventId() {
-        return eventId;
-    }
-
-    public void setEventId(Integer eventId) {
-        this.eventId = eventId;
-    }
-
-    public Integer getTemplateId() {
-        return templateId;
-    }
-
-    public void setTemplateId(Integer templateId) {
-        this.templateId = templateId;
-    }
-
-    public Integer getTotalTime() {
-        return totalTime;
-    }
-
-    public void setTotalTime(Integer totalTime) {
-        this.totalTime = totalTime;
-    }
-
-    public String getIcon() {
-        return icon;
-    }
-
-    public void setIcon(String icon) {
-        this.icon = icon;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
 }

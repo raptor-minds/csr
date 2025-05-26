@@ -1,12 +1,15 @@
 package com.blockchain.csr.mapper;
 
 import com.blockchain.csr.model.entity.Activity;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * The interface Activity mapper.
  *
  * @author zhangrucheng on 2025/5/19
  */
+
+@Mapper
 public interface ActivityMapper {
     /**
      * Delete by primary key int.

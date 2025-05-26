@@ -1,14 +1,19 @@
 package com.blockchain.csr.model.entity;
 
+import lombok.Data;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
 import java.util.Date;
 
 /**
  * @author zhangrucheng on 2025/5/19
  */
+
+@Entity
+@Data
 public class Attachment {
-    /**
-    * 
-    */
+    @Id
     private Integer id;
 
     /**
@@ -35,52 +40,4 @@ public class Attachment {
     * 
     */
     private String chainId;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Integer getUserActivityId() {
-        return userActivityId;
-    }
-
-    public void setUserActivityId(Integer userActivityId) {
-        this.userActivityId = userActivityId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public Date getCreateAt() {
-        return createAt;
-    }
-
-    public void setCreateAt(Date createAt) {
-        this.createAt = createAt;
-    }
-
-    public String getChainId() {
-        return chainId;
-    }
-
-    public void setChainId(String chainId) {
-        this.chainId = chainId;
-    }
 }

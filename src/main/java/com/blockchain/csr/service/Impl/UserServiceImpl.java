@@ -5,6 +5,7 @@ import com.blockchain.csr.model.entity.User;
 import com.blockchain.csr.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,10 +21,22 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserServiceImpl implements UserService {
 
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
-    public void createUser(String userName, String password) {
+    public void createUser(String username, String password) {
+        if (existsByUsername(username)) {
+            throw new IllegalArgumentException("User with username '" + username + "' already exists");
+        }
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(passwordEncoder.encode(password));
+        userMapper.insert(user);
+    }
 
+    @Override
+    public boolean existsByUsername(String username) {
+        return userMapper.findByUsername(username) != null;
     }
 
     public int deleteByPrimaryKey(Integer id) {

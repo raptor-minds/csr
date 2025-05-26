@@ -1,12 +1,17 @@
 package com.blockchain.csr.model.entity;
 
+import lombok.Data;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
 /**
  * @author zhangrucheng on 2025/5/19
  */
+@Entity
+@Data
 public class UserRoleMap {
-    /**
-    * 
-    */
+    @Id
     private Integer id;
 
     /**
@@ -18,28 +23,4 @@ public class UserRoleMap {
     * 
     */
     private Integer userId;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Integer getRoleId() {
-        return roleId;
-    }
-
-    public void setRoleId(Integer roleId) {
-        this.roleId = roleId;
-    }
-
-    public Integer getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Integer userId) {
-        this.userId = userId;
-    }
 }
