@@ -1,12 +1,15 @@
 package com.blockchain.csr.mapper;
 
 import com.blockchain.csr.model.entity.Template;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * The interface Template mapper.
  *
  * @author zhangrucheng on 2025/5/19
  */
+
+@Mapper
 public interface TemplateMapper {
     /**
      * Delete by primary key int.

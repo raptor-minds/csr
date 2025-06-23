@@ -27,10 +27,11 @@ USE `csr` ;
 DROP TABLE IF EXISTS `csr`.`user` ;
 
 CREATE TABLE IF NOT EXISTS `csr`.`user` (
-  `id` INT NOT NULL,
-  `username` VARCHAR(45) NULL,
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `username` VARCHAR(45) NOT NULL,
   `password` VARCHAR(255) NULL,
-  PRIMARY KEY (`id`))
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `username_UNIQUE` (`username` ASC))
 ENGINE = InnoDB;
 
 
@@ -40,7 +41,7 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `csr`.`event` ;
 
 CREATE TABLE IF NOT EXISTS `csr`.`event` (
-  `id` INT NOT NULL,
+  `id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NULL,
   `description` VARCHAR(1000) NULL,
   `start_time` DATETIME NULL,
@@ -61,7 +62,7 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `csr`.`template` ;
 
 CREATE TABLE IF NOT EXISTS `csr`.`template` (
-  `id` INT NOT NULL,
+  `id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NULL,
   `total_time` INT NULL,
   `file_link` VARCHAR(45) NULL,
@@ -76,7 +77,7 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `csr`.`activity` ;
 
 CREATE TABLE IF NOT EXISTS `csr`.`activity` (
-  `id` INT NOT NULL,
+  `id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NULL,
   `event_id` INT NULL,
   `template_id` INT NULL,
@@ -107,7 +108,7 @@ CREATE INDEX `activity_template_fk_idx` ON `csr`.`activity` (`template_id` ASC);
 DROP TABLE IF EXISTS `csr`.`role` ;
 
 CREATE TABLE IF NOT EXISTS `csr`.`role` (
-  `id` INT NOT NULL,
+  `id` INT NOT NULL AUTO_INCREMENT,
   `role` VARCHAR(45) NULL,
   `activity_id` INT NULL,
   `event_name` VARCHAR(45) NULL,
@@ -129,7 +130,7 @@ CREATE INDEX `user_event_activity_fk_idx` ON `csr`.`role` (`activity_id` ASC);
 DROP TABLE IF EXISTS `csr`.`user_activity` ;
 
 CREATE TABLE IF NOT EXISTS `csr`.`user_activity` (
-  `id` INT NOT NULL,
+  `id` INT NOT NULL AUTO_INCREMENT,
   `user_id` INT NULL,
   `activity_id` INT NULL,
   `state` VARCHAR(45) NULL,
@@ -162,7 +163,7 @@ CREATE INDEX `user_activity_activity_fk_idx` ON `csr`.`user_activity` (`activity
 DROP TABLE IF EXISTS `csr`.`attachment` ;
 
 CREATE TABLE IF NOT EXISTS `csr`.`attachment` (
-  `id` INT NOT NULL,
+  `id` INT NOT NULL AUTO_INCREMENT,
   `user_activity_id` INT NULL,
   `name` VARCHAR(45) NULL,
   `url` VARCHAR(45) NULL,
@@ -185,7 +186,7 @@ CREATE INDEX `attachment_user_activity_fk_idx` ON `csr`.`attachment` (`user_acti
 DROP TABLE IF EXISTS `csr`.`user_event` ;
 
 CREATE TABLE IF NOT EXISTS `csr`.`user_event` (
-  `id` INT NOT NULL,
+  `id` INT NOT NULL AUTO_INCREMENT,
   `user_id` INT NULL,
   `event_id` INT NULL,
   PRIMARY KEY (`id`),
@@ -212,7 +213,7 @@ CREATE INDEX `user_event_event_fk_idx` ON `csr`.`user_event` (`event_id` ASC);
 DROP TABLE IF EXISTS `csr`.`user_role_map` ;
 
 CREATE TABLE IF NOT EXISTS `csr`.`user_role_map` (
-  `id` INT NOT NULL,
+  `id` INT NOT NULL AUTO_INCREMENT,
   `role_id` INT NULL,
   `user_id` INT NULL,
   PRIMARY KEY (`id`),

@@ -1,12 +1,15 @@
 package com.blockchain.csr.mapper;
 
 import com.blockchain.csr.model.entity.User;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * The interface User mapper.
  *
  * @author zhangrucheng on 2025/5/18
  */
+
+@Mapper
 public interface UserMapper {
     /**
      * Delete by primary key int.
@@ -55,4 +58,12 @@ public interface UserMapper {
      * @return the int
      */
     int updateByPrimaryKey(User record);
+
+    /**
+     * Find by username user.
+     *
+     * @param username the username
+     * @return the user
+     */
+    User findByUsername(String username);
 }

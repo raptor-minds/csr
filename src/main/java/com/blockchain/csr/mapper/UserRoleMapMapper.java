@@ -1,12 +1,15 @@
 package com.blockchain.csr.mapper;
 
 import com.blockchain.csr.model.entity.UserRoleMap;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * The interface User role map mapper.
  *
  * @author zhangrucheng on 2025/5/19
  */
+
+@Mapper
 public interface UserRoleMapMapper {
     /**
      * Delete by primary key int.
