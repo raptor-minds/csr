@@ -1,48 +1,50 @@
 package com.blockchain.csr.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 
 import com.blockchain.csr.model.entity.Event;
-import com.blockchain.csr.mapper.EventMapper;
+import com.blockchain.csr.repository.EventRepository;
 /**
  * @author zhangrucheng on 2025/5/19
  */
 @Service
+@Transactional
+@RequiredArgsConstructor
 public class EventService{
 
-    @Autowired
-    private EventMapper eventMapper;
+    private final EventRepository eventRepository;
 
     
     public int deleteByPrimaryKey(Integer id) {
-        return eventMapper.deleteByPrimaryKey(id);
+        eventRepository.deleteById(id);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
-    
     public int insert(Event record) {
-        return eventMapper.insert(record);
+        eventRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
-    
     public int insertSelective(Event record) {
-        return eventMapper.insertSelective(record);
+        eventRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
-    
     public Event selectByPrimaryKey(Integer id) {
-        return eventMapper.selectByPrimaryKey(id);
+        return eventRepository.findById(id).orElse(null);
     }
 
-    
     public int updateByPrimaryKeySelective(Event record) {
-        return eventMapper.updateByPrimaryKeySelective(record);
+        eventRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
-    
     public int updateByPrimaryKey(Event record) {
-        return eventMapper.updateByPrimaryKey(record);
+        eventRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
 }

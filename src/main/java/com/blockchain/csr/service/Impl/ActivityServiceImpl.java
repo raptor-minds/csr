@@ -1,47 +1,49 @@
 package com.blockchain.csr.service.Impl;
 
-import com.blockchain.csr.mapper.ActivityMapper;
+import com.blockchain.csr.repository.ActivityRepository;
 import com.blockchain.csr.model.entity.Activity;
 import com.blockchain.csr.service.ActivityService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author zhangrucheng on 2025/5/20
  */
 @Service
+@Transactional
+@RequiredArgsConstructor
 public class ActivityServiceImpl implements ActivityService {
 
-    @Autowired
-    private ActivityMapper activityMapper;
+    private final ActivityRepository activityRepository;
 
 
     public int deleteByPrimaryKey(Integer id) {
-        return activityMapper.deleteByPrimaryKey(id);
+        activityRepository.deleteById(id);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
-
 
     public int insert(Activity record) {
-        return activityMapper.insert(record);
+        activityRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
-
 
     public int insertSelective(Activity record) {
-        return activityMapper.insertSelective(record);
+        activityRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
-
 
     public Activity selectByPrimaryKey(Integer id) {
-        return activityMapper.selectByPrimaryKey(id);
+        return activityRepository.findById(id).orElse(null);
     }
-
 
     public int updateByPrimaryKeySelective(Activity record) {
-        return activityMapper.updateByPrimaryKeySelective(record);
+        activityRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
-
     public int updateByPrimaryKey(Activity record) {
-        return activityMapper.updateByPrimaryKey(record);
+        activityRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 }

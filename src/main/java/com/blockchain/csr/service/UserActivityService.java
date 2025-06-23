@@ -1,48 +1,49 @@
 package com.blockchain.csr.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 
 import com.blockchain.csr.model.entity.UserActivity;
-import com.blockchain.csr.mapper.UserActivityMapper;
+import com.blockchain.csr.repository.UserActivityRepository;
 /**
  * @author zhangrucheng on 2025/5/19
  */
 @Service
+@Transactional
+@RequiredArgsConstructor
 public class UserActivityService{
 
-    @Autowired
-    private UserActivityMapper userActivityMapper;
+    private final UserActivityRepository userActivityRepository;
 
-    
     public int deleteByPrimaryKey(Integer id) {
-        return userActivityMapper.deleteByPrimaryKey(id);
+        userActivityRepository.deleteById(id);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
-    
     public int insert(UserActivity record) {
-        return userActivityMapper.insert(record);
+        userActivityRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
-    
     public int insertSelective(UserActivity record) {
-        return userActivityMapper.insertSelective(record);
+        userActivityRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
-    
     public UserActivity selectByPrimaryKey(Integer id) {
-        return userActivityMapper.selectByPrimaryKey(id);
+        return userActivityRepository.findById(id).orElse(null);
     }
 
-    
     public int updateByPrimaryKeySelective(UserActivity record) {
-        return userActivityMapper.updateByPrimaryKeySelective(record);
+        userActivityRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
-    
     public int updateByPrimaryKey(UserActivity record) {
-        return userActivityMapper.updateByPrimaryKey(record);
+        userActivityRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
 }

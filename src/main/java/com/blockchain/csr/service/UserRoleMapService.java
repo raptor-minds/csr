@@ -1,48 +1,49 @@
 package com.blockchain.csr.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 
 import com.blockchain.csr.model.entity.UserRoleMap;
-import com.blockchain.csr.mapper.UserRoleMapMapper;
+import com.blockchain.csr.repository.UserRoleMapRepository;
 /**
  * @author zhangrucheng on 2025/5/19
  */
 @Service
+@Transactional
+@RequiredArgsConstructor
 public class UserRoleMapService{
 
-    @Autowired
-    private UserRoleMapMapper userRoleMapMapper;
+    private final UserRoleMapRepository userRoleMapRepository;
 
-    
     public int deleteByPrimaryKey(Integer id) {
-        return userRoleMapMapper.deleteByPrimaryKey(id);
+        userRoleMapRepository.deleteById(id);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
-    
     public int insert(UserRoleMap record) {
-        return userRoleMapMapper.insert(record);
+        userRoleMapRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
-    
     public int insertSelective(UserRoleMap record) {
-        return userRoleMapMapper.insertSelective(record);
+        userRoleMapRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
-    
     public UserRoleMap selectByPrimaryKey(Integer id) {
-        return userRoleMapMapper.selectByPrimaryKey(id);
+        return userRoleMapRepository.findById(id).orElse(null);
     }
 
-    
     public int updateByPrimaryKeySelective(UserRoleMap record) {
-        return userRoleMapMapper.updateByPrimaryKeySelective(record);
+        userRoleMapRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
-    
     public int updateByPrimaryKey(UserRoleMap record) {
-        return userRoleMapMapper.updateByPrimaryKey(record);
+        userRoleMapRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
 }

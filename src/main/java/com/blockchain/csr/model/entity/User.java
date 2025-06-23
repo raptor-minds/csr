@@ -2,8 +2,7 @@ package com.blockchain.csr.model.entity;
 
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import jakarta.persistence.*;
 
 /**
  * The type User.
@@ -12,18 +11,17 @@ import javax.persistence.Id;
  */
 @Data
 @Entity
+@Table(name = "user")
 public class User {
 
     @Id
+    @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    /**
-    * 
-    */
+    @Column(name = "username", length = 45, nullable = false, unique = true)
     private String username;
 
-    /**
-    * 
-    */
+    @Column(name = "password", length = 255)
     private String password;
 }
