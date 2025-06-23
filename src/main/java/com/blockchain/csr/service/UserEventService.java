@@ -1,48 +1,49 @@
 package com.blockchain.csr.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 
-import com.blockchain.csr.mapper.UserEventMapper;
+import com.blockchain.csr.repository.UserEventRepository;
 import com.blockchain.csr.model.entity.UserEvent;
 /**
  * @author zhangrucheng on 2025/5/19
  */
 @Service
+@Transactional
+@RequiredArgsConstructor
 public class UserEventService{
 
-    @Autowired
-    private UserEventMapper userEventMapper;
+    private final UserEventRepository userEventRepository;
 
-    
     public int deleteByPrimaryKey(Integer id) {
-        return userEventMapper.deleteByPrimaryKey(id);
+        userEventRepository.deleteById(id);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
-    
     public int insert(UserEvent record) {
-        return userEventMapper.insert(record);
+        userEventRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
-    
     public int insertSelective(UserEvent record) {
-        return userEventMapper.insertSelective(record);
+        userEventRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
-    
     public UserEvent selectByPrimaryKey(Integer id) {
-        return userEventMapper.selectByPrimaryKey(id);
+        return userEventRepository.findById(id).orElse(null);
     }
 
-    
     public int updateByPrimaryKeySelective(UserEvent record) {
-        return userEventMapper.updateByPrimaryKeySelective(record);
+        userEventRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
-    
     public int updateByPrimaryKey(UserEvent record) {
-        return userEventMapper.updateByPrimaryKey(record);
+        userEventRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
 }

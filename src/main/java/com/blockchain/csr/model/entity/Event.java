@@ -2,8 +2,8 @@ package com.blockchain.csr.model.entity;
 
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -11,57 +11,73 @@ import java.util.Date;
  */
 @Entity
 @Data
+@Table(name = "event")
 public class Event {
     @Id
+    @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     /**
     * 
     */
+    @Column(name = "name", length = 45)
     private String name;
 
     /**
     * 
     */
+    @Column(name = "description", length = 1000)
     private String description;
 
     /**
     * 
     */
+    @Column(name = "start_time")
+    @Temporal(TemporalType.TIMESTAMP)
     private Date startTime;
 
     /**
     * 
     */
+    @Column(name = "end_time")
+    @Temporal(TemporalType.TIMESTAMP)
     private Date endTime;
 
     /**
     * 
     */
+    @Column(name = "created_at")
+    @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
 
     /**
     * 
     */
+    @Column(name = "total_time")
     private Integer totalTime;
 
     /**
     * 
     */
-    private Long totalMoney;
+    @Column(name = "total_money")
+    private BigDecimal totalMoney;
 
     /**
     * 
     */
+    @Column(name = "location", length = 45)
     private String location;
 
     /**
     * 
     */
+    @Column(name = "avatar", length = 255)
     private String avatar;
 
     /**
     * 
     */
+    @Column(name = "vendor_id", length = 45)
     private String vendorId;
 }

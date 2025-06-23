@@ -1,48 +1,49 @@
 package com.blockchain.csr.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 
 import com.blockchain.csr.model.entity.Role;
-import com.blockchain.csr.mapper.RoleMapper;
+import com.blockchain.csr.repository.RoleRepository;
 /**
  * @author zhangrucheng on 2025/5/19
  */
 @Service
+@Transactional
+@RequiredArgsConstructor
 public class RoleService{
 
-    @Autowired
-    private RoleMapper roleMapper;
+    private final RoleRepository roleRepository;
 
-    
     public int deleteByPrimaryKey(Integer id) {
-        return roleMapper.deleteByPrimaryKey(id);
+        roleRepository.deleteById(id);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
-    
     public int insert(Role record) {
-        return roleMapper.insert(record);
+        roleRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
-    
     public int insertSelective(Role record) {
-        return roleMapper.insertSelective(record);
+        roleRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
-    
     public Role selectByPrimaryKey(Integer id) {
-        return roleMapper.selectByPrimaryKey(id);
+        return roleRepository.findById(id).orElse(null);
     }
 
-    
     public int updateByPrimaryKeySelective(Role record) {
-        return roleMapper.updateByPrimaryKeySelective(record);
+        roleRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
-    
     public int updateByPrimaryKey(Role record) {
-        return roleMapper.updateByPrimaryKey(record);
+        roleRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
 }

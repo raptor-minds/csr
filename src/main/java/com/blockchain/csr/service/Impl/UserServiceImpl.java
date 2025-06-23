@@ -1,6 +1,6 @@
 package com.blockchain.csr.service.Impl;
 
-import com.blockchain.csr.mapper.UserMapper;
+import com.blockchain.csr.repository.UserRepository;
 import com.blockchain.csr.model.entity.User;
 import com.blockchain.csr.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private final UserMapper userMapper;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -31,35 +31,40 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
-        userMapper.insert(user);
+        userRepository.save(user);
     }
 
     @Override
     public boolean existsByUsername(String username) {
-        return userMapper.findByUsername(username) != null;
+        return userRepository.existsByUsername(username);
     }
 
     public int deleteByPrimaryKey(Integer id) {
-        return userMapper.deleteByPrimaryKey(id);
+        userRepository.deleteById(id);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
     public int insert(User record) {
-        return userMapper.insert(record);
+        userRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
     public int insertSelective(User record) {
-        return userMapper.insertSelective(record);
+        userRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
     public User selectByPrimaryKey(Integer id) {
-        return userMapper.selectByPrimaryKey(id);
+        return userRepository.findById(id).orElse(null);
     }
 
     public int updateByPrimaryKeySelective(User record) {
-        return userMapper.updateByPrimaryKeySelective(record);
+        userRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 
     public int updateByPrimaryKey(User record) {
-        return userMapper.updateByPrimaryKey(record);
+        userRepository.save(record);
+        return 1; // JPA doesn't return affected rows, assuming success
     }
 }
