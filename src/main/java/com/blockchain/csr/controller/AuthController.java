@@ -3,10 +3,12 @@ package com.blockchain.csr.controller;
 import com.blockchain.csr.config.JwtUtil;
 import com.blockchain.csr.model.dto.AuthRequest;
 import com.blockchain.csr.model.dto.AuthResponse;
+import com.blockchain.csr.model.dto.BaseResponse;
 import com.blockchain.csr.model.dto.RefreshTokenRequest;
 import com.blockchain.csr.model.dto.RefreshTokenResponse;
 import com.blockchain.csr.service.RefreshTokenService;
 import com.blockchain.csr.service.UserService;
+import com.blockchain.csr.service.Impl.UserServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -34,17 +36,29 @@ public class AuthController {
     private final RefreshTokenService refreshTokenService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody AuthRequest request) {
+    public ResponseEntity<BaseResponse<Object>> register(@RequestBody AuthRequest request) {
         try {
             userService.createUser(request.getUsername(), request.getPassword());
-            return ResponseEntity.ok("User registered successfully");
+            return ResponseEntity.ok(BaseResponse.success("User registered successfully"));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(BaseResponse.error(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/register/admin")
+    public ResponseEntity<BaseResponse<Object>> registerAdmin(@RequestBody AuthRequest request) {
+        try {
+            // In a real application, you'd want to restrict this endpoint to existing admins
+            // For now, allowing admin creation for initial setup
+            ((UserServiceImpl) userService).createAdminUser(request.getUsername(), request.getPassword());
+            return ResponseEntity.ok(BaseResponse.success("Admin user registered successfully"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(BaseResponse.error(e.getMessage()));
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthRequest request) {
+    public ResponseEntity<BaseResponse<AuthResponse>> login(@RequestBody AuthRequest request) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
@@ -64,37 +78,37 @@ public class AuthController {
                     .expiresIn(300L) // 5 minutes in seconds
                     .build();
             
-            return ResponseEntity.ok(authResponse);
+            return ResponseEntity.ok(BaseResponse.success(authResponse));
         } catch (AuthenticationException e) {
-            return ResponseEntity.status(401).body("Invalid username or password");
+            return ResponseEntity.status(401).body(BaseResponse.unauthorized("Invalid username or password"));
         }
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestBody RefreshTokenRequest request) {
+    public ResponseEntity<BaseResponse<Object>> logout(@RequestBody RefreshTokenRequest request) {
         try {
             String refreshToken = request.getRefreshToken();
             if (refreshToken != null && jwtUtil.validateToken(refreshToken) && jwtUtil.isRefreshToken(refreshToken)) {
                 refreshTokenService.removeRefreshToken(refreshToken);
             }
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok(BaseResponse.success("Logged out successfully"));
         } catch (Exception e) {
             log.error("Error during logout: {}", e.getMessage());
-            return ResponseEntity.ok().build(); // Return success even if token is invalid
+            return ResponseEntity.ok(BaseResponse.success("Logged out successfully")); // Return success even if token is invalid
         }
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(@RequestBody RefreshTokenRequest request) {
+    public ResponseEntity<BaseResponse<RefreshTokenResponse>> refresh(@RequestBody RefreshTokenRequest request) {
         try {
             String refreshToken = request.getRefreshToken();
             
             if (refreshToken == null || !jwtUtil.validateToken(refreshToken) || !jwtUtil.isRefreshToken(refreshToken)) {
-                return ResponseEntity.status(401).body("Invalid refresh token");
+                return ResponseEntity.status(401).body(BaseResponse.unauthorized("Invalid refresh token"));
             }
             
             if (!refreshTokenService.isValidRefreshToken(refreshToken)) {
-                return ResponseEntity.status(401).body("Refresh token not found or expired");
+                return ResponseEntity.status(401).body(BaseResponse.unauthorized("Refresh token not found or expired"));
             }
             
             String username = jwtUtil.extractUsername(refreshToken);
@@ -107,10 +121,10 @@ public class AuthController {
                     .expiresIn(300L) // 5 minutes in seconds
                     .build();
             
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(BaseResponse.success(response));
         } catch (Exception e) {
             log.error("Error during token refresh: {}", e.getMessage());
-            return ResponseEntity.status(401).body("Token refresh failed");
+            return ResponseEntity.status(401).body(BaseResponse.unauthorized("Token refresh failed"));
         }
     }
 } 

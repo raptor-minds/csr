@@ -30,6 +30,10 @@ CREATE TABLE IF NOT EXISTS `csr`.`user` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `username` VARCHAR(45) NOT NULL,
   `password` VARCHAR(255) NULL,
+  `role` VARCHAR(10) NOT NULL DEFAULT 'USER',
+  `location` VARCHAR(50) NULL,
+  `reviewer` VARCHAR(100) NULL,
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `username_UNIQUE` (`username` ASC))
 ENGINE = InnoDB;

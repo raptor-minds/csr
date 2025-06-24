@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### deploy scripts
+deploy-simple.ps1
+deploy.ps1
+csr.service
+install-service.sh
