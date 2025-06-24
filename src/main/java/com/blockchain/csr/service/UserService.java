@@ -27,6 +27,27 @@ public interface UserService {
     boolean existsByUsername(String username);
 
     /**
+     * Reset user password.
+     *
+     * @param userId the user id
+     * @param newPassword the new password
+     * @throws IllegalArgumentException if user not found or password is invalid
+     */
+    void resetPassword(Integer userId, String newPassword);
+
+    /**
+     * Get paginated user list with filtering and sorting.
+     *
+     * @param page the page number (0-based)
+     * @param pageSize the page size
+     * @param username the username filter (optional)
+     * @param sortField the sort field (optional)
+     * @param sortOrder the sort order (ascend/descend)
+     * @return UserListResponse
+     */
+    com.blockchain.csr.model.dto.UserListResponse getUserList(Integer page, Integer pageSize, String username, String sortField, String sortOrder);
+
+    /**
      * Delete by primary key int.
      *
      * @param id the id
