@@ -7,6 +7,14 @@ import lombok.RequiredArgsConstructor;
 
 import com.blockchain.csr.repository.UserEventRepository;
 import com.blockchain.csr.model.entity.UserEvent;
+import com.blockchain.csr.model.dto.EventDto;
+import com.blockchain.csr.model.entity.Event;
+import com.blockchain.csr.repository.EventRepository;
+import com.blockchain.csr.repository.UserRepository;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * @author zhangrucheng on 2025/5/19
  */
@@ -16,6 +24,63 @@ import com.blockchain.csr.model.entity.UserEvent;
 public class UserEventService{
 
     private final UserEventRepository userEventRepository;
+    private final EventRepository eventRepository;
+    private final UserRepository userRepository;
+
+    public List<EventDto> getEventsByUserId(Integer userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new IllegalArgumentException("User not found with id: " + userId);
+        }
+
+        List<UserEvent> userEvents = userEventRepository.findByUserId(userId);
+
+        List<Integer> eventIds = userEvents.stream()
+                .map(UserEvent::getEventId)
+                .collect(Collectors.toList());
+
+        if (eventIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<Event> events = eventRepository.findAllById(eventIds);
+
+        return events.stream()
+                .map(this::convertToEventDto)
+                .collect(Collectors.toList());
+    }
+
+    private EventDto convertToEventDto(Event event) {
+        return EventDto.builder()
+                .id(event.getId())
+                .name(event.getName())
+                .type(event.getType())
+                .duration(formatDuration(event.getDuration()))
+                .status(event.getStatus())
+                .build();
+    }
+
+    private String formatDuration(Integer totalMinutes) {
+        if (totalMinutes == null || totalMinutes <= 0) {
+            return "";
+        }
+
+        int hours = totalMinutes / 60;
+        int minutes = totalMinutes % 60;
+
+        StringBuilder durationString = new StringBuilder();
+        if (hours > 0) {
+            durationString.append(hours).append(" Hour(s)");
+        }
+
+        if (minutes > 0) {
+            if (hours > 0) {
+                durationString.append(" ");
+            }
+            durationString.append(minutes).append(" Minute(s)");
+        }
+
+        return durationString.toString();
+    }
 
     public int deleteByPrimaryKey(Integer id) {
         userEventRepository.deleteById(id);

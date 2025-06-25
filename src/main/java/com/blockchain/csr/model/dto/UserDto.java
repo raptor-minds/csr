@@ -14,7 +14,8 @@ public class UserDto {
     private String username;
     private String role;
     private String location;
-    private String reviewer;
+    private Integer reviewerId;
+    private String reviewerName;
     private String createTime;
     private Integer eventCount;
     private Integer activityCount;

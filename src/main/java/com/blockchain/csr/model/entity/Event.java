@@ -1,5 +1,7 @@
 package com.blockchain.csr.model.entity;
 
+import com.blockchain.csr.model.enums.EventStatus;
+import com.blockchain.csr.model.enums.EventType;
 import lombok.Data;
 
 import jakarta.persistence.*;
@@ -21,7 +23,7 @@ public class Event {
     /**
     * 
     */
-    @Column(name = "name", length = 45)
+    @Column(name = "name", length = 100, nullable = false)
     private String name;
 
     /**
@@ -54,12 +56,6 @@ public class Event {
     /**
     * 
     */
-    @Column(name = "total_time")
-    private Integer totalTime;
-
-    /**
-    * 
-    */
     @Column(name = "total_money")
     private BigDecimal totalMoney;
 
@@ -80,4 +76,13 @@ public class Event {
     */
     @Column(name = "vendor_id", length = 45)
     private String vendorId;
+
+    @Column(name = "type", length = 20, nullable = false)
+    private String type = EventType.HYBRID.getValue();
+
+    @Column(name = "duration")
+    private Integer duration;
+
+    @Column(name = "status", length = 20, nullable = false)
+    private String status = EventStatus.ACTIVE.getValue();
 }

@@ -5,6 +5,7 @@ import com.blockchain.csr.model.entity.User;
 import com.blockchain.csr.model.enums.UserRole;
 import com.blockchain.csr.model.dto.UserDto;
 import com.blockchain.csr.model.dto.UserListResponse;
+import com.blockchain.csr.model.dto.UserUpdateRequest;
 import com.blockchain.csr.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -146,6 +147,95 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
+    @Override
+    public UserDto getUserDetails(Integer id) {
+        User user = userRepository.findById(id).orElse(null);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found with id: " + id);
+        }
+        return convertToUserDto(user);
+    }
+
+    @Override
+    public void updateUser(Integer id, UserUpdateRequest updateRequest) {
+        User user = userRepository.findById(id).orElse(null);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found with id: " + id);
+        }
+        
+        // Check if username is being changed and if new username already exists
+        if (!user.getUsername().equals(updateRequest.getUsername())) {
+            if (existsByUsername(updateRequest.getUsername())) {
+                throw new IllegalArgumentException("Username '" + updateRequest.getUsername() + "' already exists");
+            }
+        }
+        
+        // Update user fields
+        user.setUsername(updateRequest.getUsername());
+        user.setRole("admin".equals(updateRequest.getRole()) ? UserRole.ADMIN : UserRole.USER);
+        user.setLocation(updateRequest.getLocation());
+        
+        userRepository.save(user);
+        log.info("Updated user with ID: {}, username: {}, role: {}, location: {}", 
+                id, updateRequest.getUsername(), updateRequest.getRole(), updateRequest.getLocation());
+    }
+
+    @Override
+    public void changeReviewer(Integer userId, Integer reviewerId) {
+        // Check if user exists
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found with id: " + userId);
+        }
+        
+        // Check if user is admin (admin doesn't need reviewer)
+        if (user.getRole() == UserRole.ADMIN) {
+            throw new IllegalArgumentException("An administrator does not need a reviewer");
+        }
+        
+        // Check if reviewer exists
+        User reviewer = userRepository.findById(reviewerId).orElse(null);
+        if (reviewer == null) {
+            throw new IllegalArgumentException("Reviewer not found with id: " + reviewerId);
+        }
+        
+        // Update user's reviewer
+        user.setReviewer(reviewer);
+        userRepository.save(user);
+        log.info("Updated reviewer for user ID: {} to reviewer ID: {} ({})", 
+                userId, reviewerId, reviewer.getUsername());
+    }
+
+    @Override
+    public void batchDeleteUsers(List<Integer> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            throw new IllegalArgumentException("User IDs list cannot be null or empty");
+        }
+        
+        List<Integer> notFoundIds = new ArrayList<>();
+        List<User> usersToDelete = new ArrayList<>();
+        
+        // Check if all users exist
+        for (Integer userId : userIds) {
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null) {
+                notFoundIds.add(userId);
+            } else {
+                usersToDelete.add(user);
+            }
+        }
+        
+        // If any users were not found, throw exception
+        if (!notFoundIds.isEmpty()) {
+            throw new IllegalArgumentException("Users not found with IDs: " + notFoundIds);
+        }
+        
+        // Delete all users
+        userRepository.deleteAll(usersToDelete);
+        
+        log.info("Batch deleted {} users with IDs: {}", usersToDelete.size(), userIds);
+    }
+
     private Specification<User> createUserSpecification(String username) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -181,15 +271,16 @@ public class UserServiceImpl implements UserService {
             log.warn("Failed to get activity count for user {}: {}", user.getId(), e.getMessage());
         }
 
-        // Convert role to English description
-        String roleDesc = user.getRole() == UserRole.ADMIN ? "Administrator" : "User";
+        // Convert role to lowercase string
+        String roleDesc = user.getRole() == UserRole.ADMIN ? "admin" : "user";
         
         return UserDto.builder()
                 .id(user.getId())
                 .username(user.getUsername())
                 .role(roleDesc)
                 .location(user.getLocation())
-                .reviewer(user.getReviewer())
+                .reviewerId(user.getReviewer() != null ? user.getReviewer().getId() : null)
+                .reviewerName(user.getReviewer() != null ? user.getReviewer().getUsername() : null)
                 .createTime(user.getCreateTime() != null ? user.getCreateTime().format(formatter) : null)
                 .eventCount(eventCount)
                 .activityCount(activityCount)

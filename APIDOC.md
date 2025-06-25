@@ -238,7 +238,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
         "username": "john_doe",
         "role": "User",
         "location": "上海",
-        "reviewer": "李明",
+        "reviewerId": 2,
+        "reviewerName": "李明",
         "createTime": "2024-01-15 10:30:00",
         "eventCount": 5,
         "activityCount": 12
@@ -248,7 +249,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
         "username": "admin_user",
         "role": "Administrator",
         "location": "深圳",
-        "reviewer": "王强",
+        "reviewerId": null,
+        "reviewerName": null,
         "createTime": "2024-01-16 14:20:00",
         "eventCount": 0,
         "activityCount": 0
@@ -269,10 +271,10 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 | data[].username | string | User's username |
 | data[].role | string | User role |
 | data[].location | string | User's location |
-| data[].reviewer | string | User's reviewer name |
+| data[].reviewerId | integer | ID of the user's reviewer |
+| data[].reviewerName | string | Name of the user's reviewer |
 | data[].createTime | string | User creation timestamp (YYYY-MM-DD HH:mm:ss) |
 | data[].eventCount | integer | Number of events user participated in |
-| data[].activityCount | integer | Number of activities user participated in |
 | total | integer | Total number of users matching the filter |
 | page | integer | Current page number (1-based) |
 | pageSize | integer | Number of items per page |
@@ -314,9 +316,437 @@ Reset password for a specific user (Admin only).
 
 ---
 
+### 8. Get User Details
+Get detailed information about a specific user by their ID.
+
+**Endpoint**: `GET /api/users/{id}`  
+**Authentication**: Bearer Token  
+**Authorization**: ADMIN users can access any user's details; USER can only access their own details
+
+#### Path Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | integer | Yes | User ID to retrieve details for |
+
+#### Request Example
+```
+GET /api/users/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+#### Response
+```json
+{
+  "code": 200,
+  "message": "Success",
+  "data": {
+    "id": 1,
+    "username": "用户1",
+    "role": "admin",
+    "location": "上海",
+    "reviewerId": 3,
+    "reviewerName": "孙雄鹰",
+    "createTime": "2024-01-15 10:30:00",
+    "eventCount": 5,
+    "activityCount": 12
+  }
+}
+```
+
+#### Field Descriptions
+| Field | Type | Description |
+|-------|------|-------------|
+| id | integer | User unique identifier |
+| username | string | User's username |
+| role | string | User role ("admin" or "user") |
+| location | string | User's location |
+| reviewerId | integer | ID of the user's reviewer |
+| reviewerName | string | Name of the user's reviewer |
+| createTime | string | User creation timestamp (YYYY-MM-DD HH:mm:ss) |
+| eventCount | integer | Number of events user participated in |
+
+#### Error Responses
+
+##### User Not Found (404)
+```json
+{
+  "code": 404,
+  "message": "User not found with id: 123",
+  "data": null
+}
+```
+
+##### Unauthorized Access (403)
+```json
+{
+  "code": 403,
+  "message": "Access denied",
+  "data": null
+}
+```
+
+---
+
+### 9. Update User
+Update user information including username, role, and location.
+
+**Endpoint**: `PUT /api/users/{id}`  
+**Authentication**: Bearer Token  
+**Authorization**: ADMIN role required
+
+#### Path Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | integer | Yes | User ID to update |
+
+#### Request Body
+```json
+{
+  "username": "new_username",
+  "role": "user",
+  "location": "SH"
+}
+```
+
+#### Request Example
+```
+PUT /api/users/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
+
+{
+  "username": "updated_user",
+  "role": "admin",
+  "location": "SZ"
+}
+```
+
+#### Response
+```json
+{
+  "code": 200,
+  "message": "Update user successful",
+  "data": null
+}
+```
+
+#### Request Field Descriptions
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| username | string | Yes | New username (max 45 characters, must be unique) |
+| role | string | Yes | User role: "admin" or "user" |
+| location | string | Yes | User location: "SH" (Shanghai) or "SZ" (Shenzhen) |
+
+#### Error Responses
+
+##### User Not Found (404)
+```json
+{
+  "code": 404,
+  "message": "User not found with id: 123",
+  "data": null
+}
+```
+
+##### Username Already Exists (400)
+```json
+{
+  "code": 400,
+  "message": "Username 'existing_user' already exists",
+  "data": null
+}
+```
+
+##### Validation Error (400)
+```json
+{
+  "code": 400,
+  "message": "Validation failed",
+  "data": {
+    "role": "Role must be either 'admin' or 'user'",
+    "location": "Location must be either 'SH' or 'SZ'"
+  }
+}
+```
+
+---
+
+### 10. Change User Reviewer
+Change the reviewer for a specific user. Only works for normal users (not administrators).
+
+**Endpoint**: `PUT /api/users/{id}/reviewer`  
+**Authentication**: Bearer Token  
+**Authorization**: ADMIN role required
+
+#### Path Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | integer | Yes | User ID to change reviewer for |
+
+#### Request Body
+```json
+{
+  "reviewerId": 2
+}
+```
+
+#### Request Example
+```
+PUT /api/users/1/reviewer
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
+
+{
+  "reviewerId": 2
+}
+```
+
+#### Response
+```json
+{
+  "code": 200,
+  "message": "Change reviewer successful",
+  "data": null
+}
+```
+
+#### Request Field Descriptions
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| reviewerId | integer | Yes | User ID of the new reviewer |
+
+#### Error Responses
+
+##### User Not Found (400)
+```json
+{
+  "code": 400,
+  "message": "User not found with id: 123",
+  "data": null
+}
+```
+
+##### Admin User Error (400)
+```json
+{
+  "code": 400,
+  "message": "An administrator does not need a reviewer",
+  "data": null
+}
+```
+
+##### Reviewer Not Found (400)
+```json
+{
+  "code": 400,
+  "message": "Reviewer not found with id: 456",
+  "data": null
+}
+```
+
+##### Validation Error (400)
+```json
+{
+  "code": 400,
+  "message": "Validation failed",
+  "data": {
+    "reviewerId": "Reviewer ID cannot be null"
+  }
+}
+```
+
+---
+
+### 11. Batch Delete Users
+Delete multiple users at once by their IDs.
+
+**Endpoint**: `DELETE /api/users/batch-delete`  
+**Authentication**: Bearer Token  
+**Authorization**: ADMIN role required
+
+#### Request Body
+```json
+{
+  "userIds": [1, 2, 3, 4]
+}
+```
+
+#### Request Example
+```
+DELETE /api/users/batch-delete
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
+
+{
+  "userIds": [1, 2, 3, 4]
+}
+```
+
+#### Response
+```json
+{
+  "code": 200,
+  "message": "Batch deletion success.",
+  "data": null
+}
+```
+
+#### Request Field Descriptions
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| userIds | array | Yes | Array of user IDs to delete (cannot be null or empty) |
+
+#### Error Responses
+
+##### Users Not Found (400)
+```json
+{
+  "code": 400,
+  "message": "Users not found with IDs: [5, 6]",
+  "data": null
+}
+```
+
+##### Empty Request (400)
+```json
+{
+  "code": 400,
+  "message": "User IDs list cannot be null or empty",
+  "data": null
+}
+```
+
+##### Validation Error (400)
+```json
+{
+  "code": 400,
+  "message": "Validation failed",
+  "data": {
+    "userIds": "User IDs cannot be empty"
+  }
+}
+```
+
+---
+
+### 12. Get User Events
+Fetches the list of events a user has participated in.
+
+**Endpoint**: `GET /api/users/{id}/events`  
+**Authentication**: Bearer Token  
+**Authorization**: ADMIN can access any user's events; USER can only access their own.
+
+#### Path Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | integer | Yes | User ID to fetch events for |
+
+#### Request Example
+```
+GET /api/users/1/events
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+#### Response
+```json
+{
+  "code": 200,
+  "data": [
+    {
+      "id": 1,
+      "name": "Event name",
+      "type": "offline",
+      "duration": "8 Hour(s) 30 Minute(s)",
+      "status": "active"
+    }
+  ]
+}
+```
+
+#### Field Descriptions
+| Field | Type | Description |
+|-------|------|-------------|
+| id | integer | Event ID |
+| name | string | Event name |
+| type | string | Event type: "offline", "online", or "hybrid" |
+| duration | string | Formatted event duration (e.g., "8 Hour(s) 30 Minute(s)") |
+| status | string | Event status: "active" or "ended" |
+
+#### Error Responses
+
+##### User Not Found (404)
+```json
+{
+  "code": 404,
+  "message": "User not found with id: 123",
+  "data": null
+}
+```
+
+---
+
+### 13. Get User Activities
+Retrieve the list of activities a user has participated in.
+
+**Endpoint**: `GET /api/users/{id}/activities`  
+**Authentication**: Bearer Token  
+**Authorization**: USER or ADMIN role required
+
+#### Path Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | integer | Yes | User ID to retrieve activities for |
+
+#### Request Example
+```
+GET /api/users/1/activities
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+#### Response
+```json
+{
+  "code": 200,
+  "message": "Success",
+  "data": [
+    {
+      "id": 1,
+      "name": "Opening Speech",
+      "eventName": "Annual Tech Conference",
+      "duration": "30 Minute(s)"
+    },
+    {
+      "id": 2,
+      "name": "AI Trends Sharing",
+      "eventName": "Annual Tech Conference",
+      "duration": "1 Hour(s)"
+    }
+  ]
+}
+```
+
+#### Field Descriptions
+| Field | Type | Description |
+|-------|------|-------------|
+| id | integer | Activity ID |
+| name | string | Activity name |
+| eventName | string | Name of the event |
+| duration | string | Formatted activity duration (e.g. "30 Minute(s)") |
+
+#### Error Response
+```json
+{
+  "code": 500,
+  "message": "Failed to retrieve user activities",
+  "data": null
+}
+```
+
+---
+
 ## Test & Utility APIs
 
-### 8. Test Authentication
+### 14. Test Authentication
 Test user authentication and get user details.
 
 **Endpoint**: `POST /testAuth`  
@@ -357,7 +787,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ---
 
-### 9. Admin Test
+### 15. Admin Test
 Test endpoint accessible only by administrators.
 
 **Endpoint**: `GET /admin/test`  
@@ -381,7 +811,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ---
 
-### 10. User Test
+### 16. User Test
 Test endpoint accessible by users and administrators.
 
 **Endpoint**: `GET /user/test`  
@@ -405,7 +835,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ---
 
-### 11. Get User Profile
+### 17. Get User Profile
 Get current authenticated user's profile information.
 
 **Endpoint**: `GET /profile`  
@@ -512,58 +942,3 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 - Username filtering supports partial, case-insensitive matching 
 
 ---
-
-### 12. Get User Activities
-Retrieve the list of activities a user has participated in.
-
-**Endpoint**: `GET /api/users/{id}/activities`
-
-**Authentication**: Bearer Token (JWT)
-
-**Authorization**: USER or ADMIN role required
-
-#### Path Parameters
-| Parameter | Type   | Required | Description |
-|-----------|--------|----------|-------------|
-| id        | number | Yes      | User ID     |
-
-#### Response Example
-```json
-{
-  "code": 200,
-  "message": "Success",
-  "data": [
-    {
-      "id": 1,
-      "name": "Opening Speech",
-      "eventName": "Annual Tech Conference",
-      "duration": "30 minutes"
-    },
-    {
-      "id": 2,
-      "name": "AI Trends Sharing",
-      "eventName": "Annual Tech Conference",
-      "duration": "60 minutes"
-    }
-  ]
-}
-```
-
-#### Field Descriptions
-| Field     | Type   | Description                        |
-|-----------|--------|------------------------------------|
-| id        | number | Activity ID                        |
-| name      | string | Activity name                      |
-| eventName | string | Name of the event                  |
-| duration  | string | Activity duration (e.g. 30 minutes)|
-
-#### Error Response Example
-```json
-{
-  "code": 500,
-  "message": "Failed to retrieve user activities",
-  "data": null
-}
-```
-
---- 

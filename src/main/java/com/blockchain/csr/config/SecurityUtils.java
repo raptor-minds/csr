@@ -1,16 +1,23 @@
 package com.blockchain.csr.config;
 
 import com.blockchain.csr.model.enums.UserRole;
+import com.blockchain.csr.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 
 /**
  * Security utility class for role and permission checks
  */
+@Component
+@RequiredArgsConstructor
 public class SecurityUtils {
+
+    private final UserRepository userRepository;
 
     /**
      * Get the current authenticated user's username
@@ -79,6 +86,20 @@ public class SecurityUtils {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return authentication != null && authentication.isAuthenticated() && 
                !"anonymousUser".equals(authentication.getName());
+    }
+
+    /**
+     * Check if the current user is the user with the specified ID
+     */
+    public boolean isCurrentUser(Integer userId) {
+        String currentUsername = getCurrentUsername();
+        if (currentUsername == null || userId == null) {
+            return false;
+        }
+        
+        return userRepository.findById(userId)
+                .map(user -> currentUsername.equals(user.getUsername()))
+                .orElse(false);
     }
 
     /**

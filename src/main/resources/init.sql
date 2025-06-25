@@ -32,10 +32,16 @@ CREATE TABLE IF NOT EXISTS `csr`.`user` (
   `password` VARCHAR(255) NULL,
   `role` VARCHAR(10) NOT NULL DEFAULT 'USER',
   `location` VARCHAR(50) NULL,
-  `reviewer` VARCHAR(100) NULL,
+  `reviewer` INT NULL,
   `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `username_UNIQUE` (`username` ASC))
+  UNIQUE INDEX `username_UNIQUE` (`username` ASC),
+  INDEX `fk_user_reviewer_idx` (`reviewer` ASC),
+  CONSTRAINT `fk_user_reviewer`
+    FOREIGN KEY (`reviewer`)
+    REFERENCES `csr`.`user` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
@@ -51,11 +57,13 @@ CREATE TABLE IF NOT EXISTS `csr`.`event` (
   `start_time` DATETIME NULL,
   `end_time` DATETIME NULL,
   `created_at` DATETIME NULL,
-  `total_time` INT NULL,
+  `duration` INT NULL,
   `total_money` DECIMAL NULL,
   `location` VARCHAR(45) NULL,
   `avatar` VARCHAR(255) NULL,
   `vendor_id` VARCHAR(45) NULL,
+  `type` VARCHAR(20) NOT NULL DEFAULT 'HYBRID',
+  `status` VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;
 
