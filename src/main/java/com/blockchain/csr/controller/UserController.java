@@ -3,7 +3,9 @@ package com.blockchain.csr.controller;
 import com.blockchain.csr.model.dto.BaseResponse;
 import com.blockchain.csr.model.dto.PasswordResetRequest;
 import com.blockchain.csr.model.dto.UserListResponse;
+import com.blockchain.csr.model.dto.UserActivityDto;
 import com.blockchain.csr.service.UserService;
+import com.blockchain.csr.service.UserActivityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -19,6 +22,7 @@ import jakarta.validation.Valid;
 public class UserController {
 
     private final UserService userService;
+    private final UserActivityService userActivityService;
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -55,6 +59,21 @@ public class UserController {
         } catch (Exception e) {
             log.error("Unexpected error during password reset for user ID {}: {}", id, e.getMessage(), e);
             return ResponseEntity.status(500).body(BaseResponse.internalError("An unexpected error occurred"));
+        }
+    }
+
+    @GetMapping("/{id}/activities")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<BaseResponse<List<UserActivityDto>>> getUserActivities(@PathVariable Integer id) {
+        try {
+            log.info("Requesting activities for user ID: {}", id);
+            
+            List<UserActivityDto> activities = userActivityService.getUserActivities(id);
+            
+            return ResponseEntity.ok(BaseResponse.success(activities));
+        } catch (Exception e) {
+            log.error("Error getting activities for user ID {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(500).body(BaseResponse.internalError("Failed to retrieve user activities"));
         }
     }
 } 

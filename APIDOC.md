@@ -510,3 +510,60 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 - Role-based access is enforced at both URL and method levels
 - Pagination uses 1-based page numbering for frontend compatibility
 - Username filtering supports partial, case-insensitive matching 
+
+---
+
+### 12. Get User Activities
+Retrieve the list of activities a user has participated in.
+
+**Endpoint**: `GET /api/users/{id}/activities`
+
+**Authentication**: Bearer Token (JWT)
+
+**Authorization**: USER or ADMIN role required
+
+#### Path Parameters
+| Parameter | Type   | Required | Description |
+|-----------|--------|----------|-------------|
+| id        | number | Yes      | User ID     |
+
+#### Response Example
+```json
+{
+  "code": 200,
+  "message": "Success",
+  "data": [
+    {
+      "id": 1,
+      "name": "Opening Speech",
+      "eventName": "Annual Tech Conference",
+      "duration": "30 minutes"
+    },
+    {
+      "id": 2,
+      "name": "AI Trends Sharing",
+      "eventName": "Annual Tech Conference",
+      "duration": "60 minutes"
+    }
+  ]
+}
+```
+
+#### Field Descriptions
+| Field     | Type   | Description                        |
+|-----------|--------|------------------------------------|
+| id        | number | Activity ID                        |
+| name      | string | Activity name                      |
+| eventName | string | Name of the event                  |
+| duration  | string | Activity duration (e.g. 30 minutes)|
+
+#### Error Response Example
+```json
+{
+  "code": 500,
+  "message": "Failed to retrieve user activities",
+  "data": null
+}
+```
+
+--- 
