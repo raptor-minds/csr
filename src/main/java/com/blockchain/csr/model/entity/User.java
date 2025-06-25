@@ -34,8 +34,9 @@ public class User {
     @Column(name = "location", length = 50)
     private String location;
 
-    @Column(name = "reviewer", length = 100)
-    private String reviewer;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reviewer")
+    private User reviewer;
 
     @Column(name = "create_time", nullable = false)
     private LocalDateTime createTime;

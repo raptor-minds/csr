@@ -1,6 +1,9 @@
 package com.blockchain.csr.service;
 
+import com.blockchain.csr.model.dto.UserDto;
+import com.blockchain.csr.model.dto.UserListResponse;
 import com.blockchain.csr.model.entity.User;
+import java.util.List;
 
 /**
  * The interface User service.
@@ -45,7 +48,42 @@ public interface UserService {
      * @param sortOrder the sort order (ascend/descend)
      * @return UserListResponse
      */
-    com.blockchain.csr.model.dto.UserListResponse getUserList(Integer page, Integer pageSize, String username, String sortField, String sortOrder);
+    UserListResponse getUserList(Integer page, Integer pageSize, String username, String sortField, String sortOrder);
+
+    /**
+     * Get user details by ID.
+     *
+     * @param id the user ID
+     * @return UserDto with user details including event and activity counts
+     * @throws IllegalArgumentException if user not found
+     */
+    UserDto getUserDetails(Integer id);
+
+    /**
+     * Update user information.
+     *
+     * @param id the user ID
+     * @param updateRequest the update request containing username, role, and location
+     * @throws IllegalArgumentException if user not found or username already exists
+     */
+    void updateUser(Integer id, com.blockchain.csr.model.dto.UserUpdateRequest updateRequest);
+
+    /**
+     * Change the reviewer for a user.
+     *
+     * @param userId the user ID of the user to be updated
+     * @param reviewerId the user ID of the new reviewer
+     * @throws IllegalArgumentException if user or reviewer not found, or if user is an admin
+     */
+    void changeReviewer(Integer userId, Integer reviewerId);
+
+    /**
+     * Batch delete users by their IDs.
+     *
+     * @param userIds the list of user IDs to delete
+     * @throws IllegalArgumentException if any user ID is invalid
+     */
+    void batchDeleteUsers(List<Integer> userIds);
 
     /**
      * Delete by primary key int.
