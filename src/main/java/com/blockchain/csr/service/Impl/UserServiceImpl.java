@@ -181,7 +181,8 @@ public class UserServiceImpl implements UserService {
             log.warn("Failed to get activity count for user {}: {}", user.getId(), e.getMessage());
         }
 
-        String roleDesc = user.getRole() == UserRole.ADMIN ? "User" : "Administrator";
+        // Convert role to English description
+        String roleDesc = user.getRole() == UserRole.ADMIN ? "Administrator" : "User";
         
         return UserDto.builder()
                 .id(user.getId())
