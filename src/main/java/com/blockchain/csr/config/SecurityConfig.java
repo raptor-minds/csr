@@ -38,7 +38,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/register", "/api/auth/register/admin", "/api/auth/login", "/api/auth/refresh").permitAll()
                 .requestMatchers("/testAuth", "/profile", "/user/test").authenticated()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/users/**").hasRole("ADMIN")
+                .requestMatchers("/api/users").hasRole("ADMIN")
+                .requestMatchers("/api/users/{id}/reset-password").hasRole("ADMIN")
+                .requestMatchers("/api/users/{id}/activities").authenticated()
                 .anyRequest().authenticated()
             )
             .httpBasic(basic -> basic
