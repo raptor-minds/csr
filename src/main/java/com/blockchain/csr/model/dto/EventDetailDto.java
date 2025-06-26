@@ -1,0 +1,23 @@
+package com.blockchain.csr.model.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class EventDetailDto {
+    private Integer id;
+    private String name;
+    private Integer totalTime;
+    private String icon;
+    private String description;
+    private Boolean isDisplay;
+    private List<String> visibleLocations;
+    private List<String> visibleRoles;
+} 
