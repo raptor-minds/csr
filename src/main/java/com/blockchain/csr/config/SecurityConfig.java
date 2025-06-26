@@ -36,6 +36,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/register", "/api/auth/register/admin", "/api/auth/login", "/api/auth/refresh").permitAll()
+                .requestMatchers("/api/activities").permitAll()  // 添加这一行允许匿名访问
                 .requestMatchers("/testAuth", "/profile", "/user/test").authenticated()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/users").hasRole("ADMIN")
