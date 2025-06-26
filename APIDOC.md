@@ -942,3 +942,158 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 - Username filtering supports partial, case-insensitive matching 
 
 ---
+
+## Event Management APIs
+
+### 1. Get Event List
+**Endpoint**: `GET /api/events`
+
+#### Query Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| page | number | No | Page number |
+| pageSize | number | No | Page size |
+
+#### Response Example
+```json
+{
+  "code": 200,
+  "data": [
+    {
+      "id": 1,
+      "name": "Annual Tech Conference",
+      "startTime": "2024-03-20 09:00",
+      "endTime": "2024-03-20 18:00",
+      "is_display": true,
+      "bgImage": "https://example.com/bg.jpg",
+      "activities": [
+        {
+          "id": 1,
+          "name": "Opening Speech",
+          "description": "CEO opening remarks",
+          "startTime": "2024-03-20 09:00",
+          "endTime": "2024-03-20 09:30",
+          "status": "registering"
+        }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+### 2. Get Event Details
+**Endpoint**: `GET /api/events/{id}`
+
+#### Path Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | number | Yes | Event ID |
+
+#### Response Example
+```json
+{
+  "code": 200,
+  "data": {
+    "id": 1,
+    "name": "Annual Tech Conference",
+    "total_time": 480,
+    "icon": "/icons/tech-conference.png",
+    "description": "Annual company tech conference, inviting experts from all departments to share the latest achievements...",
+    "is_display": true,
+    "visibleLocations": ["Shanghai", "Shenzhen"],
+    "visibleRoles": ["admin", "user"]
+  }
+}
+```
+
+---
+
+### 3. Create Event
+**Endpoint**: `POST /api/events`
+
+#### Request Body
+```json
+{
+  "name": "New Event Name",
+  "totalTime": 240,
+  "icon": "/icons/new-event.png",
+  "description": "Detailed event description...",
+  "isDisplay": true,
+  "visibleLocations": ["Shanghai"],
+  "visibleRoles": ["admin", "user"]
+}
+```
+
+#### Response Example
+```json
+{
+  "code": 200,
+  "message": "Event created successfully"
+}
+```
+
+---
+
+### 4. Update Event
+**Endpoint**: `PUT /api/events/{id}`
+
+#### Path Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | number | Yes | Event ID |
+
+#### Request Body
+Same as Create Event
+
+#### Response Example
+```json
+{
+  "code": 200,
+  "message": "Update successful"
+}
+```
+
+---
+
+### 5. Update Event Display Status
+**Endpoint**: `PUT /api/events/{id}/display`
+
+#### Path Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | number | Yes | Event ID |
+
+#### Request Body
+```json
+{
+  "isDisplay": false
+}
+```
+
+#### Response Example
+```json
+{
+  "code": 200,
+  "message": "Update successful"
+}
+```
+
+---
+
+### 6. Delete Event
+**Endpoint**: `DELETE /api/events/{id}`
+
+#### Path Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | number | Yes | Event ID |
+
+#### Response Example
+```json
+{
+  "code": 200,
+  "message": "Delete successful"
+}
+```
