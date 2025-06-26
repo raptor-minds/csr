@@ -566,4 +566,62 @@ Retrieve the list of activities a user has participated in.
 }
 ```
 
+---
+
+### 13. Get User Events
+Retrieve the list of events a user has participated in.
+
+**Endpoint**: `GET /api/users/{id}/events`
+
+**Authentication**: Bearer Token (JWT)
+
+**Authorization**: USER or ADMIN role required
+
+#### Path Parameters
+| Parameter | Type   | Required | Description |
+|-----------|--------|----------|-------------|
+| id        | number | Yes      | User ID     |
+
+#### Response Example
+```json
+{
+  "code": 200,
+  "message": "Success",
+  "data": [
+    {
+      "id": 1,
+      "name": "年度技术分享大会",
+      "type": "线下事件",
+      "duration": "8小时",
+      "status": "active"
+    },
+    {
+      "id": 2,
+      "name": "线上编程马拉松",
+      "type": "线上事件",
+      "duration": "24小时",
+      "status": "ended"
+    }
+  ]
+}
+```
+
+#### Field Descriptions
+| Field    | Type   | Description                                    |
+|----------|--------|------------------------------------------------|
+| id       | number | Event ID                                       |
+| name     | string | Event name                                     |
+| type     | string | Event type (线上事件/线下事件/混合事件)         |
+| duration | string | Event duration (e.g. 8小时)                    |
+| status   | string | Event status (active=进行中, ended=已结束)     |
+
+#### Error Response Example
+```json
+{
+  "code": 500,
+  "message": "Failed to retrieve user events",
+  "data": null
+}
+```
+
 --- 

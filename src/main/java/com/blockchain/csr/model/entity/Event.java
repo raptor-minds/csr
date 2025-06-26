@@ -80,4 +80,16 @@ public class Event {
     */
     @Column(name = "vendor_id", length = 45)
     private String vendorId;
+
+    /**
+    * 
+    */
+    @Column(name = "type", length = 20)
+    private String type; // 线上事件/线下事件/混合事件
+
+    /**
+    * 事件状态 active=进行中, ended=已结束
+    */
+    @Column(name = "status", length = 20)
+    private String status;
 }

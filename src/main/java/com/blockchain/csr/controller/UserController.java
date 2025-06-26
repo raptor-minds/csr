@@ -4,8 +4,10 @@ import com.blockchain.csr.model.dto.BaseResponse;
 import com.blockchain.csr.model.dto.PasswordResetRequest;
 import com.blockchain.csr.model.dto.UserListResponse;
 import com.blockchain.csr.model.dto.UserActivityDto;
+import com.blockchain.csr.model.dto.UserEventDto;
 import com.blockchain.csr.service.UserService;
 import com.blockchain.csr.service.UserActivityService;
+import com.blockchain.csr.service.UserEventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,7 @@ public class UserController {
 
     private final UserService userService;
     private final UserActivityService userActivityService;
+    private final UserEventService userEventService;
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -74,6 +77,19 @@ public class UserController {
         } catch (Exception e) {
             log.error("Error getting activities for user ID {}: {}", id, e.getMessage(), e);
             return ResponseEntity.status(500).body(BaseResponse.internalError("Failed to retrieve user activities"));
+        }
+    }
+
+    @GetMapping("/{id}/events")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<BaseResponse<List<UserEventDto>>> getUserEvents(@PathVariable Integer id) {
+        try {
+            log.info("Requesting events for user ID: {}", id);
+            List<UserEventDto> events = userEventService.getUserEvents(id);
+            return ResponseEntity.ok(BaseResponse.success(events));
+        } catch (Exception e) {
+            log.error("Error getting events for user ID {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(500).body(BaseResponse.internalError("Failed to retrieve user events"));
         }
     }
 } 
