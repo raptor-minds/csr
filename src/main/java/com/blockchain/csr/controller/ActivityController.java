@@ -66,9 +66,12 @@ public class ActivityController {
         if (id == null || id <= 0) {
             return ResponseEntity.badRequest().body(BaseResponse.error("Invalid activity ID"));
         }
-        Activity activity = activityMapper.toEntity(dto);
-        activity.setId(id);
-        activityService.updateActivity(activity);
+        Activity existingActivity = activityService.getActivityById(id);
+        if (existingActivity == null) {
+            return ResponseEntity.badRequest().body(BaseResponse.error("Activity not found"));
+        }
+        activityMapper.updateEntityFromDto(dto, existingActivity);
+        activityService.updateActivity(existingActivity);
         return ResponseEntity.ok(BaseResponse.success());
     }
 
