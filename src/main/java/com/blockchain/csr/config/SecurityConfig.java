@@ -41,6 +41,7 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/register", "/api/auth/register/admin", "/api/auth/login", "/api/auth/refresh").permitAll()
+                .requestMatchers("/api/activities/**").permitAll()  // 允许匿名访问/api/activities及其子路径
                 .requestMatchers("/testAuth", "/profile", "/user/test").authenticated()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/users").hasRole("ADMIN")

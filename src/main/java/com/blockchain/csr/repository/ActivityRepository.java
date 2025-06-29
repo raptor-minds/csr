@@ -1,6 +1,8 @@
 package com.blockchain.csr.repository;
 
 import com.blockchain.csr.model.entity.Activity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -35,4 +37,6 @@ public interface ActivityRepository extends JpaRepository<Activity, Integer> {
      * @return List<Activity>
      */
     List<Activity> findByNameContainingIgnoreCase(String name);
+
+    Page<Activity> findByEventId(Integer eventId, Pageable pageable);
 } 

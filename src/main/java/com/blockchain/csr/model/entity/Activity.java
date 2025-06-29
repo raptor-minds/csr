@@ -3,6 +3,7 @@ package com.blockchain.csr.model.entity;
 import lombok.Data;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 /**
  * @author zhangrucheng on 2025/5/19
@@ -33,6 +34,21 @@ public class Activity {
 
     @Column(name = "description", length = 1000)
     private String description;
+
+    @Column(name = "start_time")
+    private LocalDateTime startTime;
+
+    @Column(name = "end_time")
+    private LocalDateTime endTime;
+
+    @Column(name = "status", length = 20)
+    private String status;
+
+    @Column(name = "visible_locations", columnDefinition = "JSON")
+    private String visibleLocations;
+
+    @Column(name = "visible_roles", columnDefinition = "JSON")
+    private String visibleRoles;
 
     // JPA relationships (optional - can be added later if needed)
     // @ManyToOne
