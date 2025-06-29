@@ -286,4 +286,9 @@ public class UserServiceImpl implements UserService {
                 .activityCount(activityCount)
                 .build();
     }
+
+    @Override
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username).orElse(null);
+    }
 }

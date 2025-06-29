@@ -98,7 +98,7 @@ Register a new user with ADMIN role.
 ---
 
 ### 3. User Login
-Authenticate user and receive JWT tokens.
+Authenticate user and receive JWT tokens along with user information.
 
 **Endpoint**: `POST /api/auth/login`  
 **Authentication**: None  
@@ -121,7 +121,9 @@ Authenticate user and receive JWT tokens.
     "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "tokenType": "Bearer",
-    "expiresIn": 300
+    "expiresIn": 300,
+    "id": 1,
+    "username": "john_doe"
   }
 }
 ```
@@ -133,6 +135,8 @@ Authenticate user and receive JWT tokens.
 | refreshToken | string | JWT refresh token for obtaining new access tokens |
 | tokenType | string | Token type, always "Bearer" |
 | expiresIn | number | Access token expiration time in seconds (300 = 5 minutes) |
+| id | number | Unique identifier of the authenticated user |
+| username | string | Username of the authenticated user |
 
 ---
 
