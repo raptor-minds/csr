@@ -6,6 +6,7 @@ import com.blockchain.csr.model.dto.AuthResponse;
 import com.blockchain.csr.model.dto.BaseResponse;
 import com.blockchain.csr.model.dto.RefreshTokenRequest;
 import com.blockchain.csr.model.dto.RefreshTokenResponse;
+import com.blockchain.csr.model.entity.User;
 import com.blockchain.csr.service.RefreshTokenService;
 import com.blockchain.csr.service.UserService;
 import com.blockchain.csr.service.Impl.UserServiceImpl;
@@ -14,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -60,22 +60,26 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<BaseResponse<AuthResponse>> login(@RequestBody AuthRequest request) {
         try {
-            Authentication authentication = authenticationManager.authenticate(
+            authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
             );
-            
+
             UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
             String accessToken = jwtUtil.generateAccessToken(userDetails);
             String refreshToken = jwtUtil.generateRefreshToken(userDetails);
-            
+
             // Store the refresh token
             refreshTokenService.addRefreshToken(request.getUsername(), refreshToken);
-            
+
+            User user = userService.getUserByUsername(request.getUsername());
+
             AuthResponse authResponse = AuthResponse.builder()
                     .accessToken(accessToken)
                     .refreshToken(refreshToken)
                     .tokenType("Bearer")
                     .expiresIn(300L) // 5 minutes in seconds
+                    .id(user.getId())
+                    .username(user.getUsername())
                     .build();
             
             return ResponseEntity.ok(BaseResponse.success(authResponse));

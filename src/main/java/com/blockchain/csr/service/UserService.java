@@ -132,5 +132,13 @@ public interface UserService {
      * @return the int
      */
     int updateByPrimaryKey(User record);
+
+    /**
+     * Gets user by username.
+     *
+     * @param username the username
+     * @return the user
+     */
+    User getUserByUsername(String username);
 }
 
