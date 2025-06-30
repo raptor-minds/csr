@@ -19,6 +19,7 @@ import org.springframework.util.StringUtils;
 import jakarta.persistence.criteria.Predicate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,7 +45,7 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
-        user.setRole(UserRole.USER); // Set default role as USER
+        user.setRole(UserRole.USER.getValue()); // Set default role as USER
         userRepository.save(user);
         log.info("Created new user: {} with role: {}", username, UserRole.USER);
     }
@@ -56,7 +57,7 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
-        user.setRole(UserRole.ADMIN); // Set role as ADMIN
+        user.setRole(UserRole.ADMIN.getValue()); // Set role as ADMIN
         userRepository.save(user);
         log.info("Created new admin user: {} with role: {}", username, UserRole.ADMIN);
     }
@@ -172,7 +173,13 @@ public class UserServiceImpl implements UserService {
         
         // Update user fields
         user.setUsername(updateRequest.getUsername());
-        user.setRole("admin".equals(updateRequest.getRole()) ? UserRole.ADMIN : UserRole.USER);
+        if (Arrays.stream(UserRole.values()).noneMatch(
+                role -> role.getValue().equalsIgnoreCase(updateRequest.getRole()))) {
+            log.info("Invalid role from requet, role: {}", updateRequest.getRole());
+            throw new IllegalArgumentException("Invalid role: " + updateRequest.getRole());
+        }
+        user.setRole("admin".equalsIgnoreCase(updateRequest.getRole())
+                ? UserRole.ADMIN.toString() : UserRole.USER.toString());
         user.setLocation(updateRequest.getLocation());
         
         userRepository.save(user);
@@ -189,7 +196,7 @@ public class UserServiceImpl implements UserService {
         }
         
         // Check if user is admin (admin doesn't need reviewer)
-        if (user.getRole() == UserRole.ADMIN) {
+        if (UserRole.ADMIN.toString().equals(user.getRole())) {
             throw new IllegalArgumentException("An administrator does not need a reviewer");
         }
         
@@ -272,7 +279,7 @@ public class UserServiceImpl implements UserService {
         }
 
         // Convert role to lowercase string
-        String roleDesc = user.getRole() == UserRole.ADMIN ? "admin" : "user";
+        String roleDesc = UserRole.ADMIN.toString().equals(user.getRole()) ? "admin" : "user";
         
         return UserDto.builder()
                 .id(user.getId())

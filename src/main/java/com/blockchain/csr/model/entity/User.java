@@ -28,7 +28,7 @@ public class User {
     private String password;
 
     @Column(name = "role", length = 10, nullable = false)
-    private UserRole role = UserRole.USER; // Default role is USER
+    private String role = UserRole.USER.getValue(); // Default role is USER
 
     @Column(name = "location", length = 50)
     private String location;
