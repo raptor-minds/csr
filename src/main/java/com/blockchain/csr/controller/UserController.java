@@ -68,7 +68,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}/reset-password")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or (hasRole('USER') and @securityUtils.isCurrentUser(#id))")
     public ResponseEntity<BaseResponse<Object>> resetPassword(
             @PathVariable Integer id,
             @Valid @RequestBody PasswordResetRequest request) {
