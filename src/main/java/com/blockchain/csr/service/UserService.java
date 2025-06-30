@@ -2,6 +2,7 @@ package com.blockchain.csr.service;
 
 import com.blockchain.csr.model.dto.UserDto;
 import com.blockchain.csr.model.dto.UserListResponse;
+import com.blockchain.csr.model.dto.ProfileUpdateRequest;
 import com.blockchain.csr.model.entity.User;
 import java.util.List;
 
@@ -67,6 +68,15 @@ public interface UserService {
      * @throws IllegalArgumentException if user not found or username already exists
      */
     void updateUser(Integer id, com.blockchain.csr.model.dto.UserUpdateRequest updateRequest);
+
+    /**
+     * Update user profile information.
+     *
+     * @param id the user ID
+     * @param profileUpdateRequest the profile update request containing nickname, realName, and gender
+     * @throws IllegalArgumentException if user not found
+     */
+    void updateProfile(Integer id, ProfileUpdateRequest profileUpdateRequest);
 
     /**
      * Change the reviewer for a user.

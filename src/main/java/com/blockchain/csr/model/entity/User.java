@@ -33,6 +33,15 @@ public class User {
     @Column(name = "location", length = 50)
     private String location;
 
+    @Column(name = "nickname", length = 50)
+    private String nickname;
+
+    @Column(name = "real_name", length = 50)
+    private String realName;
+
+    @Column(name = "gender", length = 10)
+    private String gender;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reviewer")
     private User reviewer;

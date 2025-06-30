@@ -9,9 +9,11 @@ import com.blockchain.csr.model.dto.UserUpdateRequest;
 import com.blockchain.csr.model.dto.ReviewerUpdateRequest;
 import com.blockchain.csr.model.dto.BatchDeleteRequest;
 import com.blockchain.csr.model.dto.EventDto;
+import com.blockchain.csr.model.dto.ProfileUpdateRequest;
 import com.blockchain.csr.service.UserService;
 import com.blockchain.csr.service.UserActivityService;
 import com.blockchain.csr.service.UserEventService;
+import com.blockchain.csr.config.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +24,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 @Slf4j
 public class UserController {
@@ -30,8 +32,9 @@ public class UserController {
     private final UserService userService;
     private final UserActivityService userActivityService;
     private final UserEventService userEventService;
+    private final SecurityUtils securityUtils;
 
-    @GetMapping
+    @GetMapping("/users")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<BaseResponse<UserListResponse>> getUserList(
             @RequestParam(value = "page", required = false) Integer page,
@@ -51,7 +54,7 @@ public class UserController {
         }
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/users/{id}")
     @PreAuthorize("hasRole('ADMIN') or (hasRole('USER') and @securityUtils.isCurrentUser(#id))")
     public ResponseEntity<BaseResponse<UserDto>> getUserDetails(@PathVariable Integer id) {
         try {
@@ -67,7 +70,24 @@ public class UserController {
         }
     }
 
-    @PutMapping("/{id}/reset-password")
+    @PutMapping("/profile")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<BaseResponse<Object>> updateProfile(@Valid @RequestBody ProfileUpdateRequest profileUpdateRequest) {
+        try {
+            Integer currentUserId = securityUtils.getCurrentUserId();
+            log.info("User requesting to update profile for user ID: {} with data: {}", currentUserId, profileUpdateRequest);
+            userService.updateProfile(currentUserId, profileUpdateRequest);
+            return ResponseEntity.ok(BaseResponse.success("更新成功"));
+        } catch (IllegalArgumentException e) {
+            log.warn("Update profile failed: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(BaseResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            log.error("Unexpected error during profile update: {}", e.getMessage(), e);
+            return ResponseEntity.status(500).body(BaseResponse.internalError("An unexpected error occurred"));
+        }
+    }
+
+    @PutMapping("/users/{id}/reset-password")
     @PreAuthorize("hasRole('ADMIN') or (hasRole('USER') and @securityUtils.isCurrentUser(#id))")
     public ResponseEntity<BaseResponse<Object>> resetPassword(
             @PathVariable Integer id,
@@ -85,7 +105,7 @@ public class UserController {
         }
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/users/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<BaseResponse<Object>> updateUser(
             @PathVariable Integer id,
@@ -103,7 +123,7 @@ public class UserController {
         }
     }
 
-    @PutMapping("/{id}/reviewer")
+    @PutMapping("/users/{id}/reviewer")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<BaseResponse<Object>> changeReviewer(
             @PathVariable Integer id,
@@ -122,7 +142,7 @@ public class UserController {
         }
     }
 
-    @DeleteMapping("/batch-delete")
+    @DeleteMapping("/users/batch-delete")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<BaseResponse<Object>> batchDeleteUsers(
             @Valid @RequestBody BatchDeleteRequest batchDeleteRequest) {
@@ -139,7 +159,7 @@ public class UserController {
         }
     }
 
-    @GetMapping("/{id}/events")
+    @GetMapping("/users/{id}/events")
     @PreAuthorize("hasRole('ADMIN') or (hasRole('USER') and @securityUtils.isCurrentUser(#id))")
     public ResponseEntity<BaseResponse<List<EventDto>>> getUserEvents(@PathVariable Integer id) {
         try {
@@ -155,7 +175,7 @@ public class UserController {
         }
     }
 
-    @GetMapping("/{id}/activities")
+    @GetMapping("/users/{id}/activities")
     @PreAuthorize("hasRole('ADMIN') or (hasRole('USER') and @securityUtils.isCurrentUser(#id))")
     public ResponseEntity<BaseResponse<List<UserActivityDto>>> getUserActivities(@PathVariable Integer id) {
         try {

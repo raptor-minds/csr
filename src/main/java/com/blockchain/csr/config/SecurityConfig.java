@@ -19,7 +19,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,13 +39,12 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/register", "/api/auth/register/admin", "/api/auth/login", "/api/auth/refresh").permitAll()
-                .requestMatchers("/testAuth", "/profile", "/user/test").authenticated()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/users").hasRole("ADMIN")
-                .requestMatchers("/api/users/{id}/reset-password").hasRole("ADMIN")
-                .requestMatchers("/api/users/{id}/activities").authenticated()
-                .anyRequest().authenticated()
+                    .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/refresh").permitAll()
+                    .requestMatchers("/api/auth/register/admin").hasRole("ADMIN")
+                    .requestMatchers("/testAuth", "/profile", "/user/test").authenticated()
+                    .requestMatchers("/admin/**").hasRole("ADMIN")
+                    .requestMatchers("/api/users/{id}/activities").authenticated()
+                    .anyRequest().authenticated()
             )
             .httpBasic(basic -> basic
                 .authenticationEntryPoint((request, response, authException) -> {
