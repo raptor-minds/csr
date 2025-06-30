@@ -37,3 +37,9 @@ deploy-simple.ps1
 deploy.ps1
 csr.service
 install-service.sh
+docker-deploy.ps1
+docker-build-local.ps1
+docker-build.sh
+local.env
+.env
+DOCKER_DEPLOYMENT.md

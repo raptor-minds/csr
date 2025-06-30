@@ -24,12 +24,11 @@ public class User {
     @Column(name = "username", length = 45, nullable = false, unique = true)
     private String username;
 
-    @Column(name = "password", length = 255)
+    @Column(name = "password")
     private String password;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "role", length = 10, nullable = false)
-    private UserRole role = UserRole.USER; // Default role is USER
+    private String role = UserRole.USER.getValue(); // Default role is USER
 
     @Column(name = "location", length = 50)
     private String location;
