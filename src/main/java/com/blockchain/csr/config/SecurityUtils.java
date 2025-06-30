@@ -89,6 +89,20 @@ public class SecurityUtils {
     }
 
     /**
+     * Get the current authenticated user's ID
+     */
+    public Integer getCurrentUserId() {
+        String currentUsername = getCurrentUsername();
+        if (currentUsername == null) {
+            return null;
+        }
+        
+        return userRepository.findByUsername(currentUsername)
+                .map(user -> user.getId())
+                .orElse(null);
+    }
+
+    /**
      * Check if the current user is the user with the specified ID
      */
     public boolean isCurrentUser(Integer userId) {

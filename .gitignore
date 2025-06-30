@@ -43,3 +43,5 @@ docker-build.sh
 local.env
 .env
 DOCKER_DEPLOYMENT.md
+
+/data/**/**

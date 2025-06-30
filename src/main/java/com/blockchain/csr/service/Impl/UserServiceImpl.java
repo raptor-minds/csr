@@ -188,6 +188,29 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void updateProfile(Integer id, com.blockchain.csr.model.dto.ProfileUpdateRequest profileUpdateRequest) {
+        User user = userRepository.findById(id).orElse(null);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found with id: " + id);
+        }
+        
+        // Update profile fields (only if provided)
+        if (profileUpdateRequest.getNickname() != null) {
+            user.setNickname(profileUpdateRequest.getNickname());
+        }
+        if (profileUpdateRequest.getRealName() != null) {
+            user.setRealName(profileUpdateRequest.getRealName());
+        }
+        if (profileUpdateRequest.getGender() != null) {
+            user.setGender(profileUpdateRequest.getGender().getValue());
+        }
+        
+        userRepository.save(user);
+        log.info("Updated profile for user ID: {}, nickname: {}, realName: {}, gender: {}", 
+                id, profileUpdateRequest.getNickname(), profileUpdateRequest.getRealName(), profileUpdateRequest.getGender());
+    }
+
+    @Override
     public void changeReviewer(Integer userId, Integer reviewerId) {
         // Check if user exists
         User user = userRepository.findById(userId).orElse(null);
@@ -286,6 +309,9 @@ public class UserServiceImpl implements UserService {
                 .username(user.getUsername())
                 .role(roleDesc)
                 .location(user.getLocation())
+                .nickname(user.getNickname())
+                .realName(user.getRealName())
+                .gender(user.getGender())
                 .reviewerId(user.getReviewer() != null ? user.getReviewer().getId() : null)
                 .reviewerName(user.getReviewer() != null ? user.getReviewer().getUsername() : null)
                 .createTime(user.getCreateTime() != null ? user.getCreateTime().format(formatter) : null)
