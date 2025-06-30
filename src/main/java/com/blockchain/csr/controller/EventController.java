@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import jakarta.validation.Valid;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/api/events")
@@ -32,6 +33,7 @@ import jakarta.validation.Valid;
 public class EventController {
     private final EventRepository eventRepository;
     private final ActivityRepository activityRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @GetMapping
     public ResponseEntity<BaseResponse<EventListResponse>> getEvents(
@@ -93,17 +95,20 @@ public class EventController {
 
     @PostMapping
     public ResponseEntity<BaseResponse<Object>> createEvent(@Valid @RequestBody EventCreateRequest request) {
-        // 构建Event实体
-        Event event = new Event();
-        event.setName(request.getName());
-        event.setDuration(request.getTotalTime());
-        event.setAvatar(request.getIcon());
-        event.setDescription(request.getDescription());
-        // event.setIsDisplay(request.getIsDisplay()); // 如有字段可替换
-        // event.setVisibleLocations... // 如有字段可替换
-        // event.setVisibleRoles... // 如有字段可替换
-        eventRepository.save(event);
-        return ResponseEntity.ok(BaseResponse.success("事件创建成功"));
+        try {
+            Event event = new Event();
+            event.setName(request.getName());
+            event.setDuration(request.getTotalTime());
+            event.setAvatar(request.getIcon());
+            event.setDescription(request.getDescription());
+            // 序列化visibleLocations和visibleRoles为JSON字符串
+            event.setVisibleLocations(objectMapper.writeValueAsString(request.getVisibleLocations()));
+            event.setVisibleRoles(objectMapper.writeValueAsString(request.getVisibleRoles()));
+            eventRepository.save(event);
+            return ResponseEntity.ok(BaseResponse.success("事件创建成功"));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(BaseResponse.internalError("事件创建失败: " + e.getMessage()));
+        }
     }
 
     @PutMapping("/{id}")
