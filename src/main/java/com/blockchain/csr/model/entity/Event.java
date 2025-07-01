@@ -97,4 +97,10 @@ public class Event {
     */
     @Column(name = "visible_roles", length = 1000)
     private String visibleRoles;
+
+    /**
+    * 是否展示
+    */
+    @Column(name = "is_display")
+    private Boolean isDisplay;
 }
