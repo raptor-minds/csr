@@ -16,4 +16,9 @@ public class ActivityDto {
     private String startTime;
     private String endTime;
     private String status;
+    private String createdAt;
+    
+    // Enhanced fields for when needsTotal=true
+    private Integer totalParticipants;
+    private Integer totalTime;
 } 

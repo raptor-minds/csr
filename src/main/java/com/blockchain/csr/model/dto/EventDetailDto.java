@@ -21,4 +21,5 @@ public class EventDetailDto {
     private Boolean isDisplay;
     private List<String> visibleLocations;
     private List<String> visibleRoles;
+    private String createdAt;
 } 

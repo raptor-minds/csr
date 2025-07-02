@@ -44,7 +44,10 @@ Register a new user with USER role.
 ```json
 {
   "username": "john_doe",
-  "password": "password123"
+  "password": "password123",
+  "nickname": "Johnny",
+  "realName": "John Doe",
+  "gender": "male"
 }
 ```
 
@@ -62,6 +65,9 @@ Register a new user with USER role.
 |-------|------|----------|-------------|
 | username | string | Yes | Unique username (max 45 characters) |
 | password | string | Yes | User password (min 6 characters) |
+| nickname | string | No | User's nickname (max 50 characters) |
+| realName | string | No | User's real name (max 50 characters) |
+| gender | string | No | User's gender. Valid values: "male", "female", "other" |
 
 ---
 
@@ -76,7 +82,10 @@ Register a new user with ADMIN role.
 ```json
 {
   "username": "admin_user",
-  "password": "admin123"
+  "password": "admin123",
+  "nickname": "Administrator",
+  "realName": "System Admin",
+  "gender": "other"
 }
 ```
 
@@ -94,6 +103,9 @@ Register a new user with ADMIN role.
 |-------|------|----------|-------------|
 | username | string | Yes | Unique username (max 45 characters) |
 | password | string | Yes | User password (min 6 characters) |
+| nickname | string | No | User's nickname (max 50 characters) |
+| realName | string | No | User's real name (max 50 characters) |
+| gender | string | No | User's gender. Valid values: "male", "female", "other" |
 
 ---
 
@@ -1042,35 +1054,136 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 #### Query Parameters
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| page | number | No | Page number |
-| pageSize | number | No | Page size |
+| page | number | No | Page number (default: 1) |
+| pageSize | number | No | Page size (default: 10) |
+| needsTotal | boolean | No | Include total participants and total time (default: false) |
 
-#### Response Example
+#### Request Example
+```
+GET /api/events?page=1&pageSize=10&needsTotal=true
+```
+
+#### Response Example (with needsTotal=true)
 ```json
 {
   "code": 200,
-  "data": [
-    {
-      "id": 1,
-      "name": "Annual Tech Conference",
-      "startTime": "2024-03-20 09:00",
-      "endTime": "2024-03-20 18:00",
-      "is_display": true,
-      "bgImage": "https://example.com/bg.jpg",
-      "activities": [
-        {
-          "id": 1,
-          "name": "Opening Speech",
-          "description": "CEO opening remarks",
-          "startTime": "2024-03-20 09:00",
-          "endTime": "2024-03-20 09:30",
-          "status": "registering"
-        }
-      ]
-    }
-  ]
+  "message": "Success",
+  "data": {
+    "data": [
+      {
+        "id": 1,
+        "name": "Annual Tech Conference",
+        "startTime": "2024-03-20 09:00",
+        "endTime": "2024-03-20 18:00",
+        "isDisplay": true,
+        "bgImage": "https://example.com/bg.jpg",
+        "createdAt": "2024-03-15 14:30",
+        "activities": [
+          {
+            "id": 1,
+            "name": "Opening Speech",
+            "description": "CEO opening remarks",
+            "startTime": "2024-03-20 09:00",
+            "endTime": "2024-03-20 09:30",
+            "status": "ACTIVE",
+            "createdAt": "2024-03-15 14:45",
+            "totalParticipants": 25,
+            "totalTime": 750
+          },
+          {
+            "id": 2,
+            "name": "Tech Workshop",
+            "description": "Hands-on technical workshop",
+            "startTime": "2024-03-20 10:00",
+            "endTime": "2024-03-20 12:00",
+            "status": "ACTIVE",
+            "createdAt": "2024-03-15 14:50",
+            "totalParticipants": 15,
+            "totalTime": 1800
+          }
+        ],
+        "totalParticipants": 25,
+        "totalTime": 1200
+      }
+    ],
+    "total": 5,
+    "page": 1,
+    "pageSize": 10
+  }
 }
 ```
+
+#### Response Example (with needsTotal=false or omitted)
+```json
+{
+  "code": 200,
+  "message": "Success",
+  "data": {
+    "data": [
+      {
+        "id": 1,
+        "name": "Annual Tech Conference",
+        "startTime": "2024-03-20 09:00",
+        "endTime": "2024-03-20 18:00",
+        "isDisplay": true,
+        "bgImage": "https://example.com/bg.jpg",
+        "createdAt": "2024-03-15 14:30",
+        "activities": [
+          {
+            "id": 1,
+            "name": "Opening Speech",
+            "description": "CEO opening remarks",
+            "startTime": "2024-03-20 09:00",
+            "endTime": "2024-03-20 09:30",
+            "status": "ACTIVE",
+            "createdAt": "2024-03-15 14:45"
+          }
+        ]
+      }
+    ],
+    "total": 5,
+    "page": 1,
+    "pageSize": 10
+  }
+}
+```
+
+#### Field Descriptions
+| Field | Type | Description |
+|-------|------|-------------|
+| id | integer | Event ID |
+| name | string | Event name |
+| startTime | string | Event start time (yyyy-MM-dd HH:mm format) |
+| endTime | string | Event end time (yyyy-MM-dd HH:mm format) |
+| isDisplay | boolean | Whether the event is displayed |
+| bgImage | string | Background image URL |
+| createdAt | string | Event creation timestamp (yyyy-MM-dd HH:mm format) |
+| activities | array | List of activities within the event |
+| totalParticipants | integer | **[Enhanced]** Total unique participants across all activities (only when needsTotal=true) |
+| totalTime | integer | **[Enhanced]** Sum of total time from all activities in minutes (only when needsTotal=true) |
+
+#### Activity Field Descriptions
+| Field | Type | Description |
+|-------|------|-------------|
+| id | integer | Activity ID |
+| name | string | Activity name |
+| description | string | Activity description |
+| startTime | string | Activity start time (yyyy-MM-dd HH:mm format) |
+| endTime | string | Activity end time (yyyy-MM-dd HH:mm format) |
+| status | string | Activity status |
+| createdAt | string | Activity creation timestamp (yyyy-MM-dd HH:mm format) |
+| totalParticipants | integer | **[Enhanced]** Total number of users signed up for this activity (only when needsTotal=true) |
+| totalTime | integer | **[Enhanced]** Total time for this activity in minutes (totalParticipants × duration, only when needsTotal=true) |
+
+#### Business Rules
+- **Event Level**: The `totalParticipants` field counts unique users across all activities in the event (de-duplicated)
+- **Activity Level**: Each activity's `totalParticipants` field counts users signed up for that specific activity
+- Only users with "SIGNED_UP" state in the user_activity table are counted
+- **Event Level**: The `totalTime` field is the sum of (participants × duration) for each activity in the event
+- **Activity Level**: Each activity's `totalTime` field is calculated as (activity participants × activity duration)
+- Enhanced fields (`totalParticipants` and `totalTime`) are only included for both events and activities when `needsTotal=true`
+- If `needsTotal=false` or omitted, the response will not include the enhanced fields for better performance
+- Pagination is 1-based (page=1 is the first page)
 
 ---
 
@@ -1095,10 +1208,25 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
     "description": "Annual company tech conference, inviting experts from all departments to share the latest achievements...",
     "is_display": true,
     "visibleLocations": ["Shanghai", "Shenzhen"],
-    "visibleRoles": ["admin", "user"]
+    "visibleRoles": ["admin", "user"],
+    "createdAt": "2024-06-28 10:15"
   }
 }
 ```
+
+#### Field Descriptions
+| Field | Type | Description |
+|-------|------|-------------|
+| id | integer | Event ID |
+| name | string | Event name |
+| startTime | string | Event start time (yyyy-MM-dd HH:mm format) |
+| endTime | string | Event end time (yyyy-MM-dd HH:mm format) |
+| icon | string | Event icon URL or path |
+| description | string | Event description |
+| is_display | boolean | Whether the event is displayed |
+| visibleLocations | array | Locations where this event is visible |
+| visibleRoles | array | User roles that can see this event |
+| createdAt | string | Event creation timestamp (yyyy-MM-dd HH:mm format) |
 
 ---
 
@@ -1131,6 +1259,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 | visibleLocations | array | 是 | 可见地区 |
 | visibleRoles | array | 是 | 可见角色 |
 
+**Note**: The `createdAt` field is automatically set to the current system time when creating an event and cannot be specified in the request.
+
 #### Response Example
 ```json
 {
@@ -1160,6 +1290,10 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 }
 ```
 
+#### Business Rules
+- All event fields can be updated except for `createdAt`
+- The `createdAt` field cannot be modified after event creation
+
 ---
 
 ### 事件详情返回示例
@@ -1175,7 +1309,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
     "description": "Annual company tech conference, inviting experts from all departments to share the latest achievements...",
     "is_display": true,
     "visibleLocations": ["Shanghai", "Shenzhen"],
-    "visibleRoles": ["admin", "user"]
+    "visibleRoles": ["admin", "user"],
+    "createdAt": "2024-06-28 10:15"
   }
 }
 ```
@@ -1227,7 +1362,397 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ## Activity Management APIs
 
-### 1. User Signup for Activity
+### 1. Get Activities List
+Retrieve a list of activities with optional filtering and enhanced information.
+
+**Endpoint**: `GET /api/activities`  
+**Authentication**: Bearer Token  
+**Authorization**: All authenticated users
+
+#### Query Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| eventId | integer | No | Filter activities by event ID |
+| page | integer | No | Page number for pagination (1-based) |
+| pageSize | integer | No | Number of items per page (default: 10) |
+| needsTotal | boolean | No | Include total participants and total time (default: false) |
+
+#### Request Example
+```
+GET /api/activities?eventId=1&page=1&pageSize=10&needsTotal=true
+```
+
+#### Response Example (with needsTotal=true)
+```json
+{
+  "code": 200,
+  "message": "Success",
+  "data": [
+    {
+      "id": 1,
+      "name": "Community Cleanup",
+      "eventId": 1,
+      "templateId": 1,
+      "duration": 120,
+      "icon": "cleanup-icon",
+      "description": "Help clean up the local park",
+      "startTime": "2024-01-15T09:00:00",
+      "endTime": "2024-01-15T11:00:00",
+      "status": "ACTIVE",
+      "visibleLocations": ["New York", "Brooklyn"],
+      "visibleRoles": ["USER", "ADMIN"],
+      "createdAt": "2024-01-15T08:30:00",
+      "totalParticipants": 15,
+      "totalTime": 1800
+    }
+  ]
+}
+```
+
+#### Response Example (with needsTotal=false or omitted)
+```json
+{
+  "code": 200,
+  "message": "Success",
+  "data": [
+    {
+      "id": 1,
+      "name": "Community Cleanup",
+      "eventId": 1,
+      "templateId": 1,
+      "duration": 120,
+      "icon": "cleanup-icon",
+      "description": "Help clean up the local park",
+      "startTime": "2024-01-15T09:00:00",
+      "endTime": "2024-01-15T11:00:00",
+      "status": "ACTIVE",
+      "visibleLocations": ["New York", "Brooklyn"],
+      "visibleRoles": ["USER", "ADMIN"],
+      "createdAt": "2024-01-15T08:30:00"
+    }
+  ]
+}
+```
+
+#### Field Descriptions
+| Field | Type | Description |
+|-------|------|-------------|
+| id | integer | Activity ID |
+| name | string | Activity name |
+| eventId | integer | Associated event ID |
+| templateId | integer | Template ID used for this activity |
+| duration | integer | Activity duration in minutes |
+| icon | string | Icon identifier for the activity |
+| description | string | Activity description |
+| startTime | string | Activity start time (ISO 8601 format) |
+| endTime | string | Activity end time (ISO 8601 format) |
+| status | string | Activity status |
+| visibleLocations | array | Locations where this activity is visible |
+| visibleRoles | array | User roles that can see this activity |
+| createdAt | string | Activity creation timestamp (ISO 8601 format) |
+| totalParticipants | integer | **[Enhanced]** Total number of users signed up (only when needsTotal=true) |
+| totalTime | integer | **[Enhanced]** Total time in minutes (totalParticipants × duration, only when needsTotal=true) |
+
+#### Business Rules
+- The `totalParticipants` field counts only users with "SIGNED_UP" state in the user_activity table
+- The `totalTime` field is calculated as `totalParticipants × duration`
+- Enhanced fields (`totalParticipants` and `totalTime`) are only included when `needsTotal=true`
+- If `needsTotal=false` or omitted, the response will not include the enhanced fields for better performance
+
+---
+
+### 2. Get Activity Details
+Retrieve detailed information about a specific activity.
+
+**Endpoint**: `GET /api/activities/{id}`  
+**Authentication**: Bearer Token  
+**Authorization**: All authenticated users
+
+#### Path Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | integer | Yes | Activity ID |
+
+#### Request Example
+```
+GET /api/activities/1
+```
+
+#### Response Example
+```json
+{
+  "code": 200,
+  "message": "Success",
+  "data": {
+    "id": 1,
+    "name": "Community Cleanup",
+    "eventId": 1,
+    "templateId": 1,
+    "duration": 120,
+    "icon": "cleanup-icon",
+    "description": "Help clean up the local park",
+    "startTime": "2024-01-15T09:00:00",
+    "endTime": "2024-01-15T11:00:00",
+    "status": "ACTIVE",
+    "visibleLocations": ["New York", "Brooklyn"],
+    "visibleRoles": ["USER", "ADMIN"],
+    "createdAt": "2024-01-15T08:30:00"
+  }
+}
+```
+
+#### Field Descriptions
+| Field | Type | Description |
+|-------|------|-------------|
+| id | integer | Activity ID |
+| name | string | Activity name |
+| eventId | integer | Associated event ID |
+| templateId | integer | Template ID used for this activity |
+| duration | integer | Activity duration in minutes |
+| icon | string | Icon identifier for the activity |
+| description | string | Activity description |
+| startTime | string | Activity start time (ISO 8601 format) |
+| endTime | string | Activity end time (ISO 8601 format) |
+| status | string | Activity status |
+| visibleLocations | array | Locations where this activity is visible |
+| visibleRoles | array | User roles that can see this activity |
+| createdAt | string | Activity creation timestamp (ISO 8601 format) |
+
+#### Error Responses
+
+##### Activity Not Found (400)
+```json
+{
+  "code": 400,
+  "message": "Activity not found",
+  "data": null
+}
+```
+
+---
+
+### 3. Create Activity
+Create a new activity within an event.
+
+**Endpoint**: `POST /api/activities`  
+**Authentication**: Bearer Token  
+**Authorization**: ADMIN role required
+
+#### Request Body
+```json
+{
+  "name": "Community Cleanup",
+  "eventId": 1,
+  "templateId": 1,
+  "duration": 120,
+  "icon": "cleanup-icon",
+  "description": "Help clean up the local park",
+  "startTime": "2024-01-15T09:00:00",
+  "endTime": "2024-01-15T11:00:00",
+  "status": "not_registered",
+  "visibleLocations": ["New York", "Brooklyn"],
+  "visibleRoles": ["USER", "ADMIN"]
+}
+```
+
+#### Response Example
+```json
+{
+  "code": 200,
+  "message": "Success",
+  "data": 1
+}
+```
+
+#### Field Descriptions
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| name | string | Yes | Activity name (max 45 characters) |
+| eventId | integer | Yes | Associated event ID |
+| templateId | integer | Yes | Template ID to use for this activity |
+| duration | integer | No | Activity duration in minutes (default: 0) |
+| icon | string | Yes | Icon identifier (max 45 characters) |
+| description | string | Yes | Activity description (max 1000 characters) |
+| startTime | string | Yes | Activity start time (ISO 8601 format) |
+| endTime | string | Yes | Activity end time (ISO 8601 format) |
+| status | string | Yes | Activity status. Valid values: "not_registered", "registering", "full", "ended" |
+| visibleLocations | array | Yes | Locations where this activity is visible (at least 1 required) |
+| visibleRoles | array | Yes | User roles that can see this activity (at least 1 required) |
+
+**Note**: The `createdAt` field is automatically set to the current system time when creating an activity and cannot be specified in the request.
+
+#### Error Responses
+
+##### Validation Error (400)
+```json
+{
+  "code": 400,
+  "message": "名称不能为空",
+  "data": null
+}
+```
+
+##### Access Denied (403)
+```json
+{
+  "code": 403,
+  "message": "Access denied. Admin role required.",
+  "data": null
+}
+```
+
+---
+
+### 4. Update Activity
+Update an existing activity's information.
+
+**Endpoint**: `PUT /api/activities/{id}`  
+**Authentication**: Bearer Token  
+**Authorization**: ADMIN role required
+
+#### Path Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | integer | Yes | Activity ID to update |
+
+#### Request Body
+```json
+{
+  "name": "Updated Community Cleanup",
+  "duration": 150,
+  "icon": "new-cleanup-icon",
+  "description": "Updated description for the park cleanup",
+  "startTime": "2024-01-15T10:00:00",
+  "endTime": "2024-01-15T12:30:00",
+  "status": "registering",
+  "visibleLocations": ["New York", "Brooklyn", "Queens"],
+  "visibleRoles": ["USER", "ADMIN"]
+}
+```
+
+#### Response Example
+```json
+{
+  "code": 200,
+  "message": "Success",
+  "data": null
+}
+```
+
+#### Field Descriptions
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| name | string | No | Activity name (max 45 characters) |
+| eventId | integer | No | Associated event ID (cannot be updated) |
+| templateId | integer | No | Template ID (cannot be updated) |
+| duration | integer | No | Activity duration in minutes |
+| icon | string | No | Icon identifier (max 45 characters) |
+| description | string | No | Activity description (max 1000 characters) |
+| startTime | string | No | Activity start time (ISO 8601 format) |
+| endTime | string | No | Activity end time (ISO 8601 format) |
+| status | string | No | Activity status. Valid values: "not_registered", "registering", "full", "ended" |
+| visibleLocations | array | No | Locations where this activity is visible (at least 1 required if provided) |
+| visibleRoles | array | No | User roles that can see this activity (at least 1 required if provided) |
+
+#### Error Responses
+
+##### Invalid Activity ID (400)
+```json
+{
+  "code": 400,
+  "message": "Invalid activity ID",
+  "data": null
+}
+```
+
+##### Activity Not Found (400)
+```json
+{
+  "code": 400,
+  "message": "Activity not found",
+  "data": null
+}
+```
+
+##### Validation Error (400)
+```json
+{
+  "code": 400,
+  "message": "无效的状态值",
+  "data": null
+}
+```
+
+##### Access Denied (403)
+```json
+{
+  "code": 403,
+  "message": "Access denied. Admin role required.",
+  "data": null
+}
+```
+
+#### Business Rules
+- Only provided fields will be updated (partial update supported)
+- eventId, templateId, and createdAt cannot be modified after creation
+- At least one location and role must be specified if visibleLocations or visibleRoles are provided
+
+---
+
+### 5. Delete Activity
+Delete an existing activity.
+
+**Endpoint**: `DELETE /api/activities/{id}`  
+**Authentication**: Bearer Token  
+**Authorization**: ADMIN role required
+
+#### Path Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | integer | Yes | Activity ID to delete |
+
+#### Request Example
+```
+DELETE /api/activities/1
+```
+
+#### Response Example
+```json
+{
+  "code": 200,
+  "message": "Success",
+  "data": null
+}
+```
+
+#### Error Responses
+
+##### Activity Not Found (400)
+```json
+{
+  "code": 400,
+  "message": "Activity not found",
+  "data": null
+}
+```
+
+##### Access Denied (403)
+```json
+{
+  "code": 403,
+  "message": "Access denied. Admin role required.",
+  "data": null
+}
+```
+
+#### Business Rules
+- Deleting an activity will also affect related user_activity records
+- This operation is irreversible
+- Only administrators can delete activities
+
+---
+
+### 6. User Signup for Activity
 Allow users to sign up for a specific activity. Records are stored in the user_activity table with SIGNED_UP status.
 
 **Endpoint**: `POST /api/activities/{activityId}/signup`  
@@ -1307,7 +1832,7 @@ Allow users to sign up for a specific activity. Records are stored in the user_a
 
 ---
 
-### 2. User Withdraw from Activity
+### 7. User Withdraw from Activity
 Allow users to withdraw from a specific activity. Changes the state from SIGNED_UP to WITHDRAWN in the user_activity table.
 
 **Endpoint**: `POST /api/activities/{activityId}/withdraw`  

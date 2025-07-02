@@ -85,10 +85,8 @@ public class UserActivityService{
         Integer activityId = (Integer) result[0];
         String activityName = (String) result[1];
         String eventName = (String) result[2];
-        Integer totalTime = (Integer) result[3];
+        Integer duration = (Integer) result[3];
         String state = (String) result[4];
-        
-        String duration = totalTime != null ? totalTime + "分钟" : "未知";
         
         return UserActivityDto.builder()
                 .id(activityId)
