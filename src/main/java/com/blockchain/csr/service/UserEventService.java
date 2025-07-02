@@ -14,6 +14,7 @@ import com.blockchain.csr.repository.UserRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.text.SimpleDateFormat;
 
 /**
  * @author zhangrucheng on 2025/5/19
@@ -50,36 +51,15 @@ public class UserEventService{
     }
 
     private EventDto convertToEventDto(Event event) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         return EventDto.builder()
                 .id(event.getId())
                 .name(event.getName())
                 .type(event.getType())
-                .duration(formatDuration(event.getDuration()))
+                .startTime(event.getStartTime() != null ? sdf.format(event.getStartTime()) : null)
+                .endTime(event.getEndTime() != null ? sdf.format(event.getEndTime()) : null)
                 .status(event.getStatus())
                 .build();
-    }
-
-    private String formatDuration(Integer totalMinutes) {
-        if (totalMinutes == null || totalMinutes <= 0) {
-            return "";
-        }
-
-        int hours = totalMinutes / 60;
-        int minutes = totalMinutes % 60;
-
-        StringBuilder durationString = new StringBuilder();
-        if (hours > 0) {
-            durationString.append(hours).append(" Hour(s)");
-        }
-
-        if (minutes > 0) {
-            if (hours > 0) {
-                durationString.append(" ");
-            }
-            durationString.append(minutes).append(" Minute(s)");
-        }
-
-        return durationString.toString();
     }
 
     public int deleteByPrimaryKey(Integer id) {

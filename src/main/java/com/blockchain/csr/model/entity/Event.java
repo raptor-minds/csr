@@ -80,9 +80,6 @@ public class Event {
     @Column(name = "type", length = 20, nullable = false)
     private String type = EventType.HYBRID.getValue();
 
-    @Column(name = "duration")
-    private Integer duration;
-
     @Column(name = "status", length = 20, nullable = false)
     private String status = EventStatus.ACTIVE.getValue();
 

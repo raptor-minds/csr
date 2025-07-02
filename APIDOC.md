@@ -1086,7 +1086,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
   "data": {
     "id": 1,
     "name": "Annual Tech Conference",
-    "total_time": 480,
+    "startTime": "2024-07-01 09:00",
+    "endTime": "2024-07-01 17:00",
     "icon": "/icons/tech-conference.png",
     "description": "Annual company tech conference, inviting experts from all departments to share the latest achievements...",
     "is_display": true,
@@ -1105,7 +1106,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```json
 {
   "name": "New Event Name",
-  "totalTime": 240,
+  "startTime": "2024-07-01 09:00",
+  "endTime": "2024-07-01 17:00",
   "icon": "/icons/new-event.png",
   "description": "Detailed event description...",
   "isDisplay": true,
@@ -1113,6 +1115,18 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
   "visibleRoles": ["admin", "user"]
 }
 ```
+
+#### 字段说明
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| name | string | 是 | 事件名称 |
+| startTime | string | 是 | 开始时间，格式yyyy-MM-dd HH:mm |
+| endTime | string | 是 | 结束时间，格式yyyy-MM-dd HH:mm |
+| icon | string | 是 | 事件图标 |
+| description | string | 是 | 事件描述 |
+| isDisplay | boolean | 是 | 是否展示 |
+| visibleLocations | array | 是 | 可见地区 |
+| visibleRoles | array | 是 | 可见角色 |
 
 #### Response Example
 ```json
@@ -1133,13 +1147,33 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 | id | number | Yes | Event ID |
 
 #### Request Body
-Same as Create Event
+同上（与创建事件一致）
 
 #### Response Example
 ```json
 {
   "code": 200,
   "message": "Update successful"
+}
+```
+
+---
+
+### 事件详情返回示例
+```json
+{
+  "code": 200,
+  "data": {
+    "id": 1,
+    "name": "Annual Tech Conference",
+    "startTime": "2024-07-01 09:00",
+    "endTime": "2024-07-01 17:00",
+    "icon": "/icons/tech-conference.png",
+    "description": "Annual company tech conference, inviting experts from all departments to share the latest achievements...",
+    "is_display": true,
+    "visibleLocations": ["Shanghai", "Shenzhen"],
+    "visibleRoles": ["admin", "user"]
+  }
 }
 ```
 

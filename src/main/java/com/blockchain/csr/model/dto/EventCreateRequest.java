@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.util.List;
 
@@ -20,7 +21,11 @@ public class EventCreateRequest {
     private String name;
 
     @NotNull
-    private Integer totalTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "GMT+8")
+    private java.util.Date startTime;
+    @NotNull
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "GMT+8")
+    private java.util.Date endTime;
 
     @NotBlank
     @Size(max = 45)
