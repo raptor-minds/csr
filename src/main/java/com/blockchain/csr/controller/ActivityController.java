@@ -137,4 +137,16 @@ public class ActivityController {
             return ResponseEntity.status(500).body(BaseResponse.internalError("Internal server error"));
         }
     }
+
+    // 获取用户在指定事件下参与的活动
+    @GetMapping(params = {"userId", "eventId"})
+    public ResponseEntity<BaseResponse<List<ActivityResponseDto>>> getUserActivitiesByEvent(
+            @RequestParam Integer userId,
+            @RequestParam Integer eventId) {
+        List<Activity> activities = activityService.getUserActivitiesByEvent(userId, eventId);
+        List<ActivityResponseDto> dtos = activities.stream()
+            .map(activityMapper::toResponseDto)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(BaseResponse.success(dtos));
+    }
 }

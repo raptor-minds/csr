@@ -127,4 +127,18 @@ public class ActivityService{
         existingRecord.setState(UserActivityState.WITHDRAWN.getValue());
         userActivityRepository.save(existingRecord);
     }
+
+    /**
+     * 获取用户在某事件下参与的所有活动
+     */
+    public List<Activity> getUserActivitiesByEvent(Integer userId, Integer eventId) {
+        List<UserActivity> userActivities = userActivityRepository.findByUserIdAndEventId(userId, eventId);
+        // 只返回用户已报名的活动
+        List<Integer> activityIds = userActivities.stream()
+                .filter(ua -> ua.getState() != null && ua.getState().equals("SIGNED_UP"))
+                .map(UserActivity::getActivityId)
+                .toList();
+        if (activityIds.isEmpty()) return List.of();
+        return activityRepository.findAllById(activityIds);
+    }
 }
