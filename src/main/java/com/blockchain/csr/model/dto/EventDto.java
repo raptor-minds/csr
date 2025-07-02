@@ -13,6 +13,7 @@ public class EventDto {
     private Integer id;
     private String name;
     private String type;
-    private String duration;
+    private String startTime;
+    private String endTime;
     private String status;
 } 

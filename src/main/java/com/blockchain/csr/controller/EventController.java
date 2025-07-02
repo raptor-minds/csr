@@ -90,14 +90,15 @@ public class EventController {
                 visibleRoles = objectMapper.readValue(event.getVisibleRoles(), new TypeReference<List<String>>() {});
             }
         } catch (Exception e) {
-            // 反序列化失败时返回"未知"
             visibleLocations = List.of("未知");
             visibleRoles = List.of("未知");
         }
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         EventDetailDto detail = EventDetailDto.builder()
                 .id(event.getId())
                 .name(event.getName())
-                .totalTime(event.getDuration())
+                .startTime(event.getStartTime() != null ? sdf.format(event.getStartTime()) : null)
+                .endTime(event.getEndTime() != null ? sdf.format(event.getEndTime()) : null)
                 .icon(event.getAvatar())
                 .description(event.getDescription())
                 .isDisplay(event.getIsDisplay() != null ? event.getIsDisplay() : false)
@@ -112,7 +113,8 @@ public class EventController {
         try {
             Event event = new Event();
             event.setName(request.getName());
-            event.setDuration(request.getTotalTime());
+            event.setStartTime(request.getStartTime());
+            event.setEndTime(request.getEndTime());
             event.setAvatar(request.getIcon());
             event.setDescription(request.getDescription());
             event.setIsDisplay(request.getIsDisplay());
@@ -133,7 +135,8 @@ public class EventController {
                 return ResponseEntity.ok(BaseResponse.error(404, "事件不存在"));
             }
             event.setName(request.getName());
-            event.setDuration(request.getTotalTime());
+            event.setStartTime(request.getStartTime());
+            event.setEndTime(request.getEndTime());
             event.setAvatar(request.getIcon());
             event.setDescription(request.getDescription());
             event.setIsDisplay(request.getIsDisplay());

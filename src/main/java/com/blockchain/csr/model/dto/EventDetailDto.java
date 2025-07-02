@@ -14,7 +14,8 @@ import java.util.List;
 public class EventDetailDto {
     private Integer id;
     private String name;
-    private Integer totalTime;
+    private String startTime;
+    private String endTime;
     private String icon;
     private String description;
     private Boolean isDisplay;
