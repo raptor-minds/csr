@@ -99,6 +99,11 @@ CREATE TABLE IF NOT EXISTS `csr`.`activity` (
   `total_time` INT NULL,
   `icon` VARCHAR(45) NULL,
   `description` VARCHAR(1000) NULL,
+  `start_time` DATETIME NULL,
+  `end_time` DATETIME NULL,
+  `status` VARCHAR(20) NULL,
+  `visible_locations` JSON NULL,
+  `visible_roles` JSON NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `activity_event_fk`
     FOREIGN KEY (`event_id`)
@@ -242,6 +247,7 @@ CREATE TABLE IF NOT EXISTS `csr`.`user_role_map` (
     REFERENCES `csr`.`role` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
+    
 ENGINE = InnoDB;
 
 CREATE INDEX `user_role_map_user_id_fk_idx` ON `csr`.`user_role_map` (`user_id` ASC);

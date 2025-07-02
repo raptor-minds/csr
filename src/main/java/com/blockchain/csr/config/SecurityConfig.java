@@ -44,6 +44,7 @@ public class SecurityConfig {
                     .requestMatchers("/testAuth", "/profile", "/user/test").authenticated()
                     .requestMatchers("/admin/**").hasRole("ADMIN")
                     .requestMatchers("/api/users/{id}/activities").authenticated()
+                    .requestMatchers("/api/activities/**")..authenticated()
                     .anyRequest().authenticated()
             )
             .httpBasic(basic -> basic
