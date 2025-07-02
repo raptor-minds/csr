@@ -1057,10 +1057,13 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 | page | number | No | Page number (default: 1) |
 | pageSize | number | No | Page size (default: 10) |
 | needsTotal | boolean | No | Include total participants and total time (default: false) |
+| eventName | string | No | Filter events by name (case-insensitive partial match) |
 
-#### Request Example
+#### Request Examples
 ```
 GET /api/events?page=1&pageSize=10&needsTotal=true
+GET /api/events?eventName=tech&page=1&pageSize=10
+GET /api/events?eventName=Annual&needsTotal=true
 ```
 
 #### Response Example (with needsTotal=true)
@@ -1176,6 +1179,7 @@ GET /api/events?page=1&pageSize=10&needsTotal=true
 | totalTime | integer | **[Enhanced]** Total time for this activity in minutes (totalParticipants × duration, only when needsTotal=true) |
 
 #### Business Rules
+- **Event Filtering**: When `eventName` is provided, only events with names containing the search term (case-insensitive) are returned
 - **Event Level**: The `totalParticipants` field counts unique users across all activities in the event (de-duplicated)
 - **Activity Level**: Each activity's `totalParticipants` field counts users signed up for that specific activity
 - Only users with "SIGNED_UP" state in the user_activity table are counted
@@ -1184,6 +1188,7 @@ GET /api/events?page=1&pageSize=10&needsTotal=true
 - Enhanced fields (`totalParticipants` and `totalTime`) are only included for both events and activities when `needsTotal=true`
 - If `needsTotal=false` or omitted, the response will not include the enhanced fields for better performance
 - Pagination is 1-based (page=1 is the first page)
+- Pagination works correctly with event name filtering - `total` reflects the count of filtered results
 
 ---
 
