@@ -2,8 +2,10 @@ package com.blockchain.csr.controller;
 
 import com.blockchain.csr.model.dto.ActivityRequestDto;
 import com.blockchain.csr.model.dto.ActivityResponseDto;
+import com.blockchain.csr.model.dto.ActivitySignupRequest;
 import com.blockchain.csr.model.mapper.ActivityMapper;
 import com.blockchain.csr.service.ActivityService;
+import com.blockchain.csr.config.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -27,6 +29,9 @@ public class ActivityController {
 
     @Autowired
     private ActivityMapper activityMapper;
+
+    @Autowired
+    private SecurityUtils securityUtils;
 
     // 获取活动列表
     @GetMapping
@@ -81,5 +86,55 @@ public class ActivityController {
         // 实现逻辑：调用activityService删除活动
         activityService.deleteActivity(id);
         return ResponseEntity.ok(BaseResponse.success());
+    }
+
+    // 用户报名活动
+    @PostMapping("/{activityId}/signup")
+    public ResponseEntity<BaseResponse<Object>> signupActivity(
+            @PathVariable Integer activityId,
+            @RequestBody @Validated ActivitySignupRequest request) {
+        
+        // 鉴权：允许管理员操作，或者允许用户本身操作
+        Integer currentUserId = securityUtils.getCurrentUserId();
+        boolean canSignup = SecurityUtils.isAdmin() || 
+                           (currentUserId != null && currentUserId.equals(request.getUserId()));
+        
+        if (!canSignup) {
+            return ResponseEntity.status(403).body(BaseResponse.forbidden("Access denied. You can only signup for yourself."));
+        }
+        
+        try {
+            activityService.signupActivity(activityId, request.getUserId());
+            return ResponseEntity.ok(BaseResponse.success("Signup successful"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(BaseResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(BaseResponse.internalError("Internal server error"));
+        }
+    }
+
+    // 用户退出活动
+    @PostMapping("/{activityId}/withdraw")
+    public ResponseEntity<BaseResponse<Object>> withdrawActivity(
+            @PathVariable Integer activityId,
+            @RequestBody @Validated ActivitySignupRequest request) {
+        
+        // 鉴权：允许管理员操作，或者允许用户本身操作
+        Integer currentUserId = securityUtils.getCurrentUserId();
+        boolean canWithdraw = SecurityUtils.isAdmin() || 
+                             (currentUserId != null && currentUserId.equals(request.getUserId()));
+        
+        if (!canWithdraw) {
+            return ResponseEntity.status(403).body(BaseResponse.forbidden("Access denied. You can only withdraw for yourself."));
+        }
+        
+        try {
+            activityService.withdrawActivity(activityId, request.getUserId());
+            return ResponseEntity.ok(BaseResponse.success("Withdraw successful"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(BaseResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(BaseResponse.internalError("Internal server error"));
+        }
     }
 }
