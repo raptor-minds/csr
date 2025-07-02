@@ -47,10 +47,18 @@ public class EventController {
     public ResponseEntity<BaseResponse<EventListResponse>> getEvents(
             @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
             @RequestParam(value = "pageSize", required = false, defaultValue = "10") Integer pageSize,
-            @RequestParam(value = "needsTotal", required = false, defaultValue = "false") Boolean needsTotal
+            @RequestParam(value = "needsTotal", required = false, defaultValue = "false") Boolean needsTotal,
+            @RequestParam(value = "eventName", required = false) String eventName
     ) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
-        Page<Event> eventPage = eventRepository.findAll(pageable);
+        Page<Event> eventPage;
+        
+        // Filter by event name if provided
+        if (eventName != null && !eventName.trim().isEmpty()) {
+            eventPage = eventRepository.findByNameContainingIgnoreCase(eventName.trim(), pageable);
+        } else {
+            eventPage = eventRepository.findAll(pageable);
+        }
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         
         List<EventWithActivitiesDto> eventList = eventPage.getContent().stream().map(event -> {
