@@ -23,6 +23,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -36,9 +38,10 @@ public class AuthController {
     private final RefreshTokenService refreshTokenService;
 
     @PostMapping("/register")
-    public ResponseEntity<BaseResponse<Object>> register(@RequestBody AuthRequest request) {
+    public ResponseEntity<BaseResponse<Object>> register(@Valid @RequestBody AuthRequest request) {
         try {
-            userService.createUser(request.getUsername(), request.getPassword());
+            userService.createUser(request.getUsername(), request.getPassword(), 
+                                   request.getNickname(), request.getRealName(), request.getGender());
             return ResponseEntity.ok(BaseResponse.success("User registered successfully"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(BaseResponse.error(e.getMessage()));
@@ -46,11 +49,12 @@ public class AuthController {
     }
 
     @PostMapping("/register/admin")
-    public ResponseEntity<BaseResponse<Object>> registerAdmin(@RequestBody AuthRequest request) {
+    public ResponseEntity<BaseResponse<Object>> registerAdmin(@Valid @RequestBody AuthRequest request) {
         try {
             // In a real application, you'd want to restrict this endpoint to existing admins
             // For now, allowing admin creation for initial setup
-            ((UserServiceImpl) userService).createAdminUser(request.getUsername(), request.getPassword());
+            userService.createAdminUser(request.getUsername(), request.getPassword(),
+                                       request.getNickname(), request.getRealName(), request.getGender());
             return ResponseEntity.ok(BaseResponse.success("Admin user registered successfully"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(BaseResponse.error(e.getMessage()));

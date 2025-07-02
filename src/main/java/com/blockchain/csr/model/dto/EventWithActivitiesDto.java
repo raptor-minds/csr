@@ -19,4 +19,9 @@ public class EventWithActivitiesDto {
     private Boolean isDisplay;
     private String bgImage;
     private List<ActivityDto> activities;
+    private String createdAt;
+    
+    // New fields for enhanced response
+    private Integer totalParticipants;
+    private Integer totalTime;
 } 

@@ -38,12 +38,28 @@ public class ActivityController {
     public ResponseEntity<BaseResponse<List<ActivityResponseDto>>> getActivities(
             @RequestParam(required = false) Integer eventId,
             @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer pageSize) {
+            @RequestParam(required = false) Integer pageSize,
+            @RequestParam(required = false, defaultValue = "false") Boolean needsTotal) {
         // 实现逻辑：调用activityService获取活动列表
         List<Activity> activities = activityService.getActivities(eventId, page, pageSize);
-        List<ActivityResponseDto> dtos = activities.stream()
-            .map(activityMapper::toResponseDto)
-            .collect(Collectors.toList());
+        
+        List<ActivityResponseDto> dtos;
+        if (needsTotal != null && needsTotal) {
+            // 如果需要总计信息，计算每个活动的总参与人数和总时间
+            dtos = activities.stream()
+                .map(activity -> {
+                    Integer totalParticipants = activityService.getTotalParticipants(activity.getId());
+                    Integer totalTime = activityService.calculateTotalTime(activity, totalParticipants);
+                    return activityMapper.toResponseDtoWithEnhancedFields(activity, totalParticipants, totalTime);
+                })
+                .collect(Collectors.toList());
+        } else {
+            // 普通模式，不计算总计信息
+            dtos = activities.stream()
+                .map(activityMapper::toResponseDto)
+                .collect(Collectors.toList());
+        }
+        
         return ResponseEntity.ok(BaseResponse.success(dtos));
     }
 

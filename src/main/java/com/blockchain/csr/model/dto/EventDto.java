@@ -16,4 +16,5 @@ public class EventDto {
     private String startTime;
     private String endTime;
     private String status;
+    private String createdAt;
 } 

@@ -5,6 +5,8 @@ import com.blockchain.csr.model.entity.Event;
 import com.blockchain.csr.model.entity.Activity;
 import com.blockchain.csr.repository.EventRepository;
 import com.blockchain.csr.repository.ActivityRepository;
+import com.blockchain.csr.service.EventService;
+import com.blockchain.csr.service.ActivityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,6 +25,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Date;
+import java.time.format.DateTimeFormatter;
 
 import jakarta.validation.Valid;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,28 +38,44 @@ import com.fasterxml.jackson.core.type.TypeReference;
 public class EventController {
     private final EventRepository eventRepository;
     private final ActivityRepository activityRepository;
+    private final EventService eventService;
+    private final ActivityService activityService;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     @GetMapping
     public ResponseEntity<BaseResponse<EventListResponse>> getEvents(
             @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
-            @RequestParam(value = "pageSize", required = false, defaultValue = "10") Integer pageSize
+            @RequestParam(value = "pageSize", required = false, defaultValue = "10") Integer pageSize,
+            @RequestParam(value = "needsTotal", required = false, defaultValue = "false") Boolean needsTotal
     ) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
         Page<Event> eventPage = eventRepository.findAll(pageable);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        
         List<EventWithActivitiesDto> eventList = eventPage.getContent().stream().map(event -> {
-            List<ActivityDto> activities = activityRepository.findByEventId(event.getId()).stream().map(activity ->
-                ActivityDto.builder()
+            List<ActivityDto> activities = activityRepository.findByEventId(event.getId()).stream().map(activity -> {
+                ActivityDto.ActivityDtoBuilder activityBuilder = ActivityDto.builder()
                         .id(activity.getId())
                         .name(activity.getName())
                         .description(activity.getDescription())
-                        .startTime(null) // 需补充字段
-                        .endTime(null)   // 需补充字段
-                        .status(null)    // 需补充字段
-                        .build()
-            ).collect(Collectors.toList());
-            return EventWithActivitiesDto.builder()
+                        .startTime(activity.getStartTime() != null ? activity.getStartTime().format(DATE_TIME_FORMATTER) : null)
+                        .endTime(activity.getEndTime() != null ? activity.getEndTime().format(DATE_TIME_FORMATTER) : null)
+                        .status(activity.getStatus())
+                        .createdAt(activity.getCreatedAt() != null ? activity.getCreatedAt().format(DATE_TIME_FORMATTER) : null);
+                
+                // Add enhanced fields for activities if requested
+                if (needsTotal != null && needsTotal) {
+                    Integer activityTotalParticipants = activityService.getTotalParticipants(activity.getId());
+                    Integer activityTotalTime = activityService.calculateTotalTime(activity, activityTotalParticipants);
+                    activityBuilder.totalParticipants(activityTotalParticipants)
+                                  .totalTime(activityTotalTime);
+                }
+                
+                return activityBuilder.build();
+            }).collect(Collectors.toList());
+            
+            EventWithActivitiesDto.EventWithActivitiesDtoBuilder builder = EventWithActivitiesDto.builder()
                     .id(event.getId())
                     .name(event.getName())
                     .startTime(event.getStartTime() != null ? sdf.format(event.getStartTime()) : null)
@@ -63,8 +83,19 @@ public class EventController {
                     .isDisplay(true) // 需补充字段
                     .bgImage(event.getAvatar())
                     .activities(activities)
-                    .build();
+                    .createdAt(event.getCreatedAt() != null ? sdf.format(event.getCreatedAt()) : null);
+            
+            // Add enhanced fields if requested
+            if (needsTotal != null && needsTotal) {
+                Integer totalParticipants = eventService.getTotalParticipants(event.getId());
+                Integer totalTime = eventService.calculateTotalTime(event.getId());
+                builder.totalParticipants(totalParticipants)
+                       .totalTime(totalTime);
+            }
+            
+            return builder.build();
         }).collect(Collectors.toList());
+        
         EventListResponse response = EventListResponse.builder()
                 .data(eventList)
                 .total(eventPage.getTotalElements())
@@ -104,6 +135,7 @@ public class EventController {
                 .isDisplay(event.getIsDisplay() != null ? event.getIsDisplay() : false)
                 .visibleLocations(visibleLocations)
                 .visibleRoles(visibleRoles)
+                .createdAt(event.getCreatedAt() != null ? sdf.format(event.getCreatedAt()) : null)
                 .build();
         return ResponseEntity.ok(BaseResponse.success(detail));
     }
@@ -120,6 +152,8 @@ public class EventController {
             event.setIsDisplay(request.getIsDisplay());
             event.setVisibleLocations(objectMapper.writeValueAsString(request.getVisibleLocations()));
             event.setVisibleRoles(objectMapper.writeValueAsString(request.getVisibleRoles()));
+            // Set created_at to current system time
+            event.setCreatedAt(new Date());
             eventRepository.save(event);
             return ResponseEntity.ok(BaseResponse.success("事件创建成功"));
         } catch (Exception e) {

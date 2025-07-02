@@ -67,8 +67,14 @@ CREATE TABLE IF NOT EXISTS `csr`.`event` (
   `vendor_id` VARCHAR(45) NULL,
   `type` VARCHAR(20) NOT NULL DEFAULT 'HYBRID',
   `status` VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+  `visible_locations` VARCHAR(1000) NULL,
+  `visible_roles` VARCHAR(1000) NULL,
+  `is_display` BOOLEAN NULL DEFAULT TRUE,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;
+
+-- Performance optimization indexes for event queries
+CREATE INDEX `idx_event_status_time` ON `csr`.`event` (`status`, `start_time`, `end_time`);
 
 
 -- -----------------------------------------------------
@@ -96,7 +102,7 @@ CREATE TABLE IF NOT EXISTS `csr`.`activity` (
   `name` VARCHAR(45) NULL,
   `event_id` INT NULL,
   `template_id` INT NULL,
-  `total_time` INT NULL,
+  `duration` INT NULL,
   `icon` VARCHAR(45) NULL,
   `description` VARCHAR(1000) NULL,
   `start_time` DATETIME NULL,
@@ -104,6 +110,7 @@ CREATE TABLE IF NOT EXISTS `csr`.`activity` (
   `status` VARCHAR(20) NULL,
   `visible_locations` JSON NULL,
   `visible_roles` JSON NULL,
+  `created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `activity_event_fk`
     FOREIGN KEY (`event_id`)
@@ -120,6 +127,9 @@ ENGINE = InnoDB;
 CREATE INDEX `activity_event_fk_idx` ON `csr`.`activity` (`event_id` ASC);
 
 CREATE INDEX `activity_template_fk_idx` ON `csr`.`activity` (`template_id` ASC);
+
+-- Performance optimization indexes for activity queries
+CREATE INDEX `idx_activity_event_status_duration` ON `csr`.`activity` (`event_id`, `status`, `duration`);
 
 
 -- -----------------------------------------------------
@@ -175,6 +185,13 @@ ENGINE = InnoDB;
 CREATE INDEX `user_activity_user_fk_idx` ON `csr`.`user_activity` (`user_id` ASC);
 
 CREATE INDEX `user_activity_activity_fk_idx` ON `csr`.`user_activity` (`activity_id` ASC);
+
+-- Performance optimization indexes for total participants and total time calculations
+CREATE INDEX `idx_user_activity_activity_state` ON `csr`.`user_activity` (`activity_id`, `state`);
+
+CREATE INDEX `idx_user_activity_covering` ON `csr`.`user_activity` (`activity_id`, `state`, `user_id`);
+
+CREATE INDEX `idx_user_activity_user_state` ON `csr`.`user_activity` (`user_id`, `state`);
 
 
 -- -----------------------------------------------------

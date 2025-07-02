@@ -25,8 +25,8 @@ public class ActivityRequestDto {
     @NotNull(message = "模板ID必须提供", groups = {CreateGroup.class})
     private Integer templateId;
 
-    @NotNull(message = "总时间必须提供", groups = {CreateGroup.class})
-    private Integer totalTime;
+    @Null(message = "活动持续时间", groups = {CreateGroup.class})
+    private Integer duration = 0;
 
     @NotBlank(message = "图标不能为空", groups = {CreateGroup.class})
     @Size(max = 45, message = "图标长度不能超过45个字符", groups = {CreateGroup.class, UpdateGroup.class})
