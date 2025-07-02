@@ -19,6 +19,7 @@ import org.springframework.util.StringUtils;
 import jakarta.persistence.criteria.Predicate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,7 +45,7 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
-        user.setRole(UserRole.USER); // Set default role as USER
+        user.setRole(UserRole.USER.getValue()); // Set default role as USER
         userRepository.save(user);
         log.info("Created new user: {} with role: {}", username, UserRole.USER);
     }
@@ -56,7 +57,7 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
-        user.setRole(UserRole.ADMIN); // Set role as ADMIN
+        user.setRole(UserRole.ADMIN.getValue()); // Set role as ADMIN
         userRepository.save(user);
         log.info("Created new admin user: {} with role: {}", username, UserRole.ADMIN);
     }
@@ -172,12 +173,41 @@ public class UserServiceImpl implements UserService {
         
         // Update user fields
         user.setUsername(updateRequest.getUsername());
-        user.setRole("admin".equals(updateRequest.getRole()) ? UserRole.ADMIN : UserRole.USER);
+        if (Arrays.stream(UserRole.values()).noneMatch(
+                role -> role.getValue().equalsIgnoreCase(updateRequest.getRole()))) {
+            log.info("Invalid role from requet, role: {}", updateRequest.getRole());
+            throw new IllegalArgumentException("Invalid role: " + updateRequest.getRole());
+        }
+        user.setRole("admin".equalsIgnoreCase(updateRequest.getRole())
+                ? UserRole.ADMIN.toString() : UserRole.USER.toString());
         user.setLocation(updateRequest.getLocation());
         
         userRepository.save(user);
         log.info("Updated user with ID: {}, username: {}, role: {}, location: {}", 
                 id, updateRequest.getUsername(), updateRequest.getRole(), updateRequest.getLocation());
+    }
+
+    @Override
+    public void updateProfile(Integer id, com.blockchain.csr.model.dto.ProfileUpdateRequest profileUpdateRequest) {
+        User user = userRepository.findById(id).orElse(null);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found with id: " + id);
+        }
+        
+        // Update profile fields (only if provided)
+        if (profileUpdateRequest.getNickname() != null) {
+            user.setNickname(profileUpdateRequest.getNickname());
+        }
+        if (profileUpdateRequest.getRealName() != null) {
+            user.setRealName(profileUpdateRequest.getRealName());
+        }
+        if (profileUpdateRequest.getGender() != null) {
+            user.setGender(profileUpdateRequest.getGender().getValue());
+        }
+        
+        userRepository.save(user);
+        log.info("Updated profile for user ID: {}, nickname: {}, realName: {}, gender: {}", 
+                id, profileUpdateRequest.getNickname(), profileUpdateRequest.getRealName(), profileUpdateRequest.getGender());
     }
 
     @Override
@@ -189,7 +219,7 @@ public class UserServiceImpl implements UserService {
         }
         
         // Check if user is admin (admin doesn't need reviewer)
-        if (user.getRole() == UserRole.ADMIN) {
+        if (UserRole.ADMIN.toString().equals(user.getRole())) {
             throw new IllegalArgumentException("An administrator does not need a reviewer");
         }
         
@@ -272,18 +302,26 @@ public class UserServiceImpl implements UserService {
         }
 
         // Convert role to lowercase string
-        String roleDesc = user.getRole() == UserRole.ADMIN ? "admin" : "user";
+        String roleDesc = UserRole.ADMIN.toString().equals(user.getRole()) ? "admin" : "user";
         
         return UserDto.builder()
                 .id(user.getId())
                 .username(user.getUsername())
                 .role(roleDesc)
                 .location(user.getLocation())
+                .nickname(user.getNickname())
+                .realName(user.getRealName())
+                .gender(user.getGender())
                 .reviewerId(user.getReviewer() != null ? user.getReviewer().getId() : null)
                 .reviewerName(user.getReviewer() != null ? user.getReviewer().getUsername() : null)
                 .createTime(user.getCreateTime() != null ? user.getCreateTime().format(formatter) : null)
                 .eventCount(eventCount)
                 .activityCount(activityCount)
                 .build();
+    }
+
+    @Override
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username).orElse(null);
     }
 }

@@ -85,4 +85,22 @@ public class Event {
 
     @Column(name = "status", length = 20, nullable = false)
     private String status = EventStatus.ACTIVE.getValue();
+
+    /**
+    * 可见地区，JSON字符串
+    */
+    @Column(name = "visible_locations", length = 1000)
+    private String visibleLocations;
+
+    /**
+    * 可见角色，JSON字符串
+    */
+    @Column(name = "visible_roles", length = 1000)
+    private String visibleRoles;
+
+    /**
+    * 是否展示
+    */
+    @Column(name = "is_display")
+    private Boolean isDisplay;
 }

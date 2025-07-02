@@ -98,7 +98,7 @@ Register a new user with ADMIN role.
 ---
 
 ### 3. User Login
-Authenticate user and receive JWT tokens.
+Authenticate user and receive JWT tokens along with user information.
 
 **Endpoint**: `POST /api/auth/login`  
 **Authentication**: None  
@@ -121,7 +121,9 @@ Authenticate user and receive JWT tokens.
     "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "tokenType": "Bearer",
-    "expiresIn": 300
+    "expiresIn": 300,
+    "id": 1,
+    "username": "john_doe"
   }
 }
 ```
@@ -133,6 +135,8 @@ Authenticate user and receive JWT tokens.
 | refreshToken | string | JWT refresh token for obtaining new access tokens |
 | tokenType | string | Token type, always "Bearer" |
 | expiresIn | number | Access token expiration time in seconds (300 = 5 minutes) |
+| id | number | Unique identifier of the authenticated user |
+| username | string | Username of the authenticated user |
 
 ---
 
@@ -471,7 +475,91 @@ Content-Type: application/json
 
 ---
 
-### 10. Change User Reviewer
+### 10. Update Profile
+Update user's profile information including nickname, real name, and gender. Users can only update their own profile.
+
+**Endpoint**: `PUT /api/profile`  
+**Authentication**: Bearer Token  
+**Authorization**: USER or ADMIN role required
+
+#### Request Body
+```json
+{
+  "nickname": "新昵称",
+  "realName": "真实姓名",
+  "gender": "male"
+}
+```
+
+#### Request Example
+```
+PUT /api/profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
+
+{
+  "nickname": "新昵称",
+  "realName": "真实姓名",
+  "gender": "male"
+}
+```
+
+#### Response
+```json
+{
+  "code": 200,
+  "message": "更新成功",
+  "data": null
+}
+```
+
+#### Request Field Descriptions
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| nickname | string | No | User's nickname (max 50 characters) |
+| realName | string | No | User's real name (max 50 characters) |
+| gender | string | No | User's gender: "male", "female", or "other" |
+
+#### Notes
+- All fields are optional - you can update only the fields you want to change
+- The user is automatically identified from the JWT token
+- Only the authenticated user can update their own profile
+
+#### Error Responses
+
+##### User Not Found (400)
+```json
+{
+  "code": 400,
+  "message": "User not found with id: 123",
+  "data": null
+}
+```
+
+##### Validation Error (400)
+```json
+{
+  "code": 400,
+  "message": "Invalid gender value: invalid_gender. Must be one of: male, female, other",
+  "data": null
+}
+```
+
+##### Field Length Error (400)
+```json
+{
+  "code": 400,
+  "message": "Validation failed",
+  "data": {
+    "nickname": "Nickname cannot exceed 50 characters",
+    "realName": "Real name cannot exceed 50 characters"
+  }
+}
+```
+
+---
+
+### 11. Change User Reviewer
 Change the reviewer for a specific user. Only works for normal users (not administrators).
 
 **Endpoint**: `PUT /api/users/{id}/reviewer`  
@@ -557,7 +645,7 @@ Content-Type: application/json
 
 ---
 
-### 11. Batch Delete Users
+### 12. Batch Delete Users
 Delete multiple users at once by their IDs.
 
 **Endpoint**: `DELETE /api/users/batch-delete`  
@@ -629,7 +717,7 @@ Content-Type: application/json
 
 ---
 
-### 12. Get User Events
+### 13. Get User Events
 Fetches the list of events a user has participated in.
 
 **Endpoint**: `GET /api/users/{id}/events`  
@@ -685,7 +773,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ---
 
-### 13. Get User Activities
+### 14. Get User Activities
 Retrieve the list of activities a user has participated in.
 
 **Endpoint**: `GET /api/users/{id}/activities`  

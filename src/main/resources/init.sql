@@ -34,6 +34,9 @@ CREATE TABLE IF NOT EXISTS `csr`.`user` (
   `location` VARCHAR(50) NULL,
   `reviewer` INT NULL,
   `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `nickname` VARCHAR(50) NULL,
+  `real_name` VARCHAR(50) NULL,
+  `gender` VARCHAR(10) NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `username_UNIQUE` (`username` ASC),
   INDEX `fk_user_reviewer_idx` (`reviewer` ASC),
@@ -244,4 +247,14 @@ CREATE TABLE IF NOT EXISTS `csr`.`user_role_map` (
     REFERENCES `csr`.`role` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
+    
 ENGINE = InnoDB;
+
+CREATE INDEX `user_role_map_user_id_fk_idx` ON `csr`.`user_role_map` (`user_id` ASC);
+
+CREATE INDEX `user_role_map_role_id_fk_idx` ON `csr`.`user_role_map` (`role_id` ASC);
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;

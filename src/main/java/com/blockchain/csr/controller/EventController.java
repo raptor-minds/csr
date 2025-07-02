@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import jakarta.validation.Valid;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 @RestController
 @RequestMapping("/api/events")
@@ -32,6 +34,7 @@ import jakarta.validation.Valid;
 public class EventController {
     private final EventRepository eventRepository;
     private final ActivityRepository activityRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @GetMapping
     public ResponseEntity<BaseResponse<EventListResponse>> getEvents(
@@ -77,50 +80,71 @@ public class EventController {
         if (event == null) {
             return ResponseEntity.ok(BaseResponse.error(404, "事件不存在"));
         }
-        // 组装EventDetailDto
+        List<String> visibleLocations = List.of();
+        List<String> visibleRoles = List.of();
+        try {
+            if (event.getVisibleLocations() != null) {
+                visibleLocations = objectMapper.readValue(event.getVisibleLocations(), new TypeReference<List<String>>() {});
+            }
+            if (event.getVisibleRoles() != null) {
+                visibleRoles = objectMapper.readValue(event.getVisibleRoles(), new TypeReference<List<String>>() {});
+            }
+        } catch (Exception e) {
+            // 反序列化失败时返回"未知"
+            visibleLocations = List.of("未知");
+            visibleRoles = List.of("未知");
+        }
         EventDetailDto detail = EventDetailDto.builder()
                 .id(event.getId())
                 .name(event.getName())
                 .totalTime(event.getDuration())
                 .icon(event.getAvatar())
                 .description(event.getDescription())
-                .isDisplay(true) // 如有字段可替换
-                .visibleLocations(List.of("上海", "深圳")) // 如有字段可替换
-                .visibleRoles(List.of("admin", "user")) // 如有字段可替换
+                .isDisplay(event.getIsDisplay() != null ? event.getIsDisplay() : false)
+                .visibleLocations(visibleLocations)
+                .visibleRoles(visibleRoles)
                 .build();
         return ResponseEntity.ok(BaseResponse.success(detail));
     }
 
     @PostMapping
     public ResponseEntity<BaseResponse<Object>> createEvent(@Valid @RequestBody EventCreateRequest request) {
-        // 构建Event实体
-        Event event = new Event();
-        event.setName(request.getName());
-        event.setDuration(request.getTotalTime());
-        event.setAvatar(request.getIcon());
-        event.setDescription(request.getDescription());
-        // event.setIsDisplay(request.getIsDisplay()); // 如有字段可替换
-        // event.setVisibleLocations... // 如有字段可替换
-        // event.setVisibleRoles... // 如有字段可替换
-        eventRepository.save(event);
-        return ResponseEntity.ok(BaseResponse.success("事件创建成功"));
+        try {
+            Event event = new Event();
+            event.setName(request.getName());
+            event.setDuration(request.getTotalTime());
+            event.setAvatar(request.getIcon());
+            event.setDescription(request.getDescription());
+            event.setIsDisplay(request.getIsDisplay());
+            event.setVisibleLocations(objectMapper.writeValueAsString(request.getVisibleLocations()));
+            event.setVisibleRoles(objectMapper.writeValueAsString(request.getVisibleRoles()));
+            eventRepository.save(event);
+            return ResponseEntity.ok(BaseResponse.success("事件创建成功"));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(BaseResponse.internalError("事件创建失败: " + e.getMessage()));
+        }
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<BaseResponse<Object>> updateEvent(@PathVariable Integer id, @Valid @RequestBody EventCreateRequest request) {
-        Event event = eventRepository.findById(id).orElse(null);
-        if (event == null) {
-            return ResponseEntity.ok(BaseResponse.error(404, "事件不存在"));
+        try{
+            Event event = eventRepository.findById(id).orElse(null);
+            if (event == null) {
+                return ResponseEntity.ok(BaseResponse.error(404, "事件不存在"));
+            }
+            event.setName(request.getName());
+            event.setDuration(request.getTotalTime());
+            event.setAvatar(request.getIcon());
+            event.setDescription(request.getDescription());
+            event.setIsDisplay(request.getIsDisplay());
+            event.setVisibleLocations(objectMapper.writeValueAsString(request.getVisibleLocations()));
+            event.setVisibleRoles(objectMapper.writeValueAsString(request.getVisibleRoles()));
+            eventRepository.save(event);
+            return ResponseEntity.ok(BaseResponse.success("更新事件成功"));
+
+        }catch (Exception e) {
+            return ResponseEntity.status(500).body(BaseResponse.internalError("更新事件失败: " + e.getMessage()));
         }
-        event.setName(request.getName());
-        event.setDuration(request.getTotalTime());
-        event.setAvatar(request.getIcon());
-        event.setDescription(request.getDescription());
-        // event.setIsDisplay(request.getIsDisplay()); // 如有字段可替换
-        // event.setVisibleLocations... // 如有字段可替换
-        // event.setVisibleRoles... // 如有字段可替换
-        eventRepository.save(event);
-        return ResponseEntity.ok(BaseResponse.success("更新成功"));
     }
 
     @PutMapping("/{id}/display")
@@ -129,9 +153,9 @@ public class EventController {
         if (event == null) {
             return ResponseEntity.ok(BaseResponse.error(404, "事件不存在"));
         }
-        // event.setIsDisplay(request.getIsDisplay()); // 如有字段可替换
+        event.setIsDisplay(request.getIsDisplay());
         eventRepository.save(event);
-        return ResponseEntity.ok(BaseResponse.success("更新成功"));
+        return ResponseEntity.ok(BaseResponse.success("更新事件显示状态成功"));
     }
 
     @DeleteMapping("/{id}")
