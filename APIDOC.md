@@ -801,13 +801,15 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
       "id": 1,
       "name": "Opening Speech",
       "eventName": "Annual Tech Conference",
-      "duration": "30 Minute(s)"
+      "duration": "30 Minute(s)",
+      "state": "SIGNED_UP"
     },
     {
       "id": 2,
       "name": "AI Trends Sharing",
       "eventName": "Annual Tech Conference",
-      "duration": "1 Hour(s)"
+      "duration": "1 Hour(s)",
+      "state": "WITHDRAWN"
     }
   ]
 }
@@ -820,6 +822,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 | name | string | Activity name |
 | eventName | string | Name of the event |
 | duration | string | Formatted activity duration (e.g. "30 Minute(s)") |
+| state | string | User's participation state: "SIGNED_UP" or "WITHDRAWN" |
 
 #### Error Response
 ```json
@@ -1185,3 +1188,174 @@ Same as Create Event
   "message": "Delete successful"
 }
 ```
+
+---
+
+## Activity Management APIs
+
+### 1. User Signup for Activity
+Allow users to sign up for a specific activity. Records are stored in the user_activity table with SIGNED_UP status.
+
+**Endpoint**: `POST /api/activities/{activityId}/signup`  
+**Authentication**: Bearer Token  
+**Authorization**: ADMIN role or the user themselves (JWT userId must match request userId)
+
+#### Path Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| activityId | number | Yes | Activity ID to sign up for |
+
+#### Request Body
+```json
+{
+  "userId": 1
+}
+```
+
+#### Response Example
+```json
+{
+  "code": 200,
+  "message": "Signup successful",
+  "data": null
+}
+```
+
+#### Field Descriptions
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| userId | number | Yes | ID of the user signing up for the activity |
+
+#### Error Responses
+
+##### Activity Not Found (400)
+```json
+{
+  "code": 400,
+  "message": "Activity not found",
+  "data": null
+}
+```
+
+##### User Not Found (400)
+```json
+{
+  "code": 400,
+  "message": "User not found",
+  "data": null
+}
+```
+
+##### Already Signed Up (400)
+```json
+{
+  "code": 400,
+  "message": "User has already signed up for this activity",
+  "data": null
+}
+```
+
+##### Access Denied (403)
+```json
+{
+  "code": 403,
+  "message": "Access denied. You can only signup for yourself.",
+  "data": null
+}
+```
+
+#### Business Rules
+- Only administrators can sign up other users for activities
+- Regular users can only sign up themselves (JWT userId must match request userId)
+- Users cannot sign up for the same activity multiple times
+- The signup record is created with state "SIGNED_UP"
+- Fields chain_id, detail, endorsed_at, and endorsed_by are initially set to null
+
+---
+
+### 2. User Withdraw from Activity
+Allow users to withdraw from a specific activity. Changes the state from SIGNED_UP to WITHDRAWN in the user_activity table.
+
+**Endpoint**: `POST /api/activities/{activityId}/withdraw`  
+**Authentication**: Bearer Token  
+**Authorization**: ADMIN role or the user themselves (JWT userId must match request userId)
+
+#### Path Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| activityId | number | Yes | Activity ID to withdraw from |
+
+#### Request Body
+```json
+{
+  "userId": 1
+}
+```
+
+#### Response Example
+```json
+{
+  "code": 200,
+  "message": "Withdraw successful",
+  "data": null
+}
+```
+
+#### Field Descriptions
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| userId | number | Yes | ID of the user withdrawing from the activity |
+
+#### Error Responses
+
+##### Activity Not Found (400)
+```json
+{
+  "code": 400,
+  "message": "Activity not found",
+  "data": null
+}
+```
+
+##### User Not Found (400)
+```json
+{
+  "code": 400,
+  "message": "User not found",
+  "data": null
+}
+```
+
+##### Not Signed Up (400)
+```json
+{
+  "code": 400,
+  "message": "User has not signed up for this activity",
+  "data": null
+}
+```
+
+##### Not Currently Signed Up (400)
+```json
+{
+  "code": 400,
+  "message": "User is not currently signed up for this activity",
+  "data": null
+}
+```
+
+##### Access Denied (403)
+```json
+{
+  "code": 403,
+  "message": "Access denied. You can only withdraw for yourself.",
+  "data": null
+}
+```
+
+#### Business Rules
+- Only administrators can withdraw other users from activities
+- Regular users can only withdraw themselves (JWT userId must match request userId)
+- Users can only withdraw from activities they are currently signed up for (state must be "SIGNED_UP")
+- After withdrawal, the state is changed to "WITHDRAWN"
+- Users who have withdrawn can sign up again (the signup API will change state back to "SIGNED_UP")

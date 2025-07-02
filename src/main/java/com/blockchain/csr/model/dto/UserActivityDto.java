@@ -33,4 +33,9 @@ public class UserActivityDto {
      * Activity duration
      */
     private String duration;
+    
+    /**
+     * User activity state (SIGNED_UP, WITHDRAWN)
+     */
+    private String state;
 } 

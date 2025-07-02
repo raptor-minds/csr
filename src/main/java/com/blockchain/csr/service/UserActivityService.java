@@ -86,6 +86,7 @@ public class UserActivityService{
         String activityName = (String) result[1];
         String eventName = (String) result[2];
         Integer totalTime = (Integer) result[3];
+        String state = (String) result[4];
         
         String duration = totalTime != null ? totalTime + "分钟" : "未知";
         
@@ -94,6 +95,7 @@ public class UserActivityService{
                 .name(activityName)
                 .eventName(eventName)
                 .duration(duration)
+                .state(state)
                 .build();
     }
 }
