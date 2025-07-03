@@ -87,4 +87,13 @@ public interface UserActivityRepository extends JpaRepository<UserActivity, Inte
            "JOIN UserActivity ua ON a.id = ua.activityId " +
            "WHERE ua.userId = :userId")
     List<Object[]> findUserActivitiesWithEventInfo(@Param("userId") Integer userId);
+    
+    /**
+     * Find user activities by userId and eventId
+     * @param userId 用户ID
+     * @param eventId 事件ID
+     * @return List<UserActivity>
+     */
+    @Query("SELECT ua FROM UserActivity ua JOIN Activity a ON ua.activityId = a.id WHERE ua.userId = :userId AND a.eventId = :eventId")
+    List<UserActivity> findByUserIdAndEventId(@Param("userId") Integer userId, @Param("eventId") Integer eventId);
 } 

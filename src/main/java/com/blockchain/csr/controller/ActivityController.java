@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.blockchain.csr.model.entity.Activity;
 import com.blockchain.csr.model.dto.BaseResponse;
@@ -152,5 +153,28 @@ public class ActivityController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body(BaseResponse.internalError("Internal server error"));
         }
+    }
+
+    // 获取用户在指定事件下参与的活动
+    @GetMapping(params = {"userId", "eventId"})
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity<BaseResponse<List<ActivityResponseDto>>> getUserActivitiesByEvent(
+            @RequestParam Integer userId,
+            @RequestParam Integer eventId) {
+        
+        // 权限检查：如果不是admin且不是当前用户，直接返回错误
+        Integer currentUserId = securityUtils.getCurrentUserId();
+        boolean canReview = SecurityUtils.isAdmin() ||
+                (currentUserId != null && currentUserId.equals(userId));
+        if (!canReview) {
+            return ResponseEntity.status(403).body(BaseResponse.forbidden("您只能查看自己的活动信息"));
+        }
+        
+        // 权限通过后，才执行数据库查询
+        List<Activity> activities = activityService.getUserActivitiesByEvent(userId, eventId);
+        List<ActivityResponseDto> dtos = activities.stream()
+            .map(activityMapper::toResponseDto)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(BaseResponse.success(dtos));
     }
 }
