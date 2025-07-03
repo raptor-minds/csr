@@ -26,8 +26,8 @@ public class Activity {
     @Column(name = "template_id")
     private Integer templateId;
 
-    @Column(name = "total_time")
-    private Integer totalTime;
+    @Column(name = "duration")
+    private Integer duration;
 
     @Column(name = "icon", length = 45)
     private String icon;
@@ -49,6 +49,9 @@ public class Activity {
 
     @Column(name = "visible_roles", columnDefinition = "JSON")
     private String visibleRoles;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     // JPA relationships (optional - can be added later if needed)
     // @ManyToOne

@@ -10,7 +10,7 @@ public class ActivityResponseDto {
     private String name;
     private Integer eventId;
     private Integer templateId;
-    private Integer totalTime;
+    private Integer duration;
     private String icon;
     private String description;
 
@@ -19,4 +19,9 @@ public class ActivityResponseDto {
     private String status;
     private List<String> visibleLocations;
     private List<String> visibleRoles;
+    private LocalDateTime createdAt;
+    
+    // New fields for enhanced response
+    private Integer totalParticipants;
+    private Integer totalTime;
 }

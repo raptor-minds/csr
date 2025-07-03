@@ -17,7 +17,7 @@ public class ActivityMapper {
         entity.setName(dto.getName());
         entity.setEventId(dto.getEventId());
         entity.setTemplateId(dto.getTemplateId());
-        entity.setTotalTime(dto.getTotalTime());
+        entity.setDuration(dto.getDuration());
         entity.setIcon(dto.getIcon());
         entity.setDescription(dto.getDescription());
         entity.setStartTime(dto.getStartTime());
@@ -34,7 +34,7 @@ public class ActivityMapper {
         dto.setName(entity.getName());
         dto.setEventId(entity.getEventId());
         dto.setTemplateId(entity.getTemplateId());
-        dto.setTotalTime(entity.getTotalTime());
+        dto.setDuration(entity.getDuration());
         dto.setIcon(entity.getIcon());
         dto.setDescription(entity.getDescription());
         dto.setStartTime(entity.getStartTime());
@@ -42,6 +42,22 @@ public class ActivityMapper {
         dto.setStatus(entity.getStatus());
         dto.setVisibleLocations(convertToList(entity.getVisibleLocations()));
         dto.setVisibleRoles(convertToList(entity.getVisibleRoles()));
+        dto.setCreatedAt(entity.getCreatedAt());
+        return dto;
+    }
+
+    /**
+     * Convert Activity entity to ActivityResponseDto with enhanced fields
+     *
+     * @param entity the Activity entity
+     * @param totalParticipants the total number of participants
+     * @param totalTime the total time (participants * duration)
+     * @return ActivityResponseDto with enhanced fields
+     */
+    public ActivityResponseDto toResponseDtoWithEnhancedFields(Activity entity, Integer totalParticipants, Integer totalTime) {
+        ActivityResponseDto dto = toResponseDto(entity);
+        dto.setTotalParticipants(totalParticipants);
+        dto.setTotalTime(totalTime);
         return dto;
     }
 
@@ -57,7 +73,7 @@ public class ActivityMapper {
         if (dto.getName() != null) entity.setName(dto.getName());
         if (dto.getEventId() != null) entity.setEventId(dto.getEventId());
         if (dto.getTemplateId() != null) entity.setTemplateId(dto.getTemplateId());
-        if (dto.getTotalTime() != null) entity.setTotalTime(dto.getTotalTime());
+        if (dto.getDuration() != null) entity.setDuration(dto.getDuration());
         if (dto.getIcon() != null) entity.setIcon(dto.getIcon());
         if (dto.getDescription() != null) entity.setDescription(dto.getDescription());
         if (dto.getStartTime() != null) entity.setStartTime(dto.getStartTime());

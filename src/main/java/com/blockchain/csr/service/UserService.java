@@ -18,9 +18,24 @@ public interface UserService {
      *
      * @param userName the user name
      * @param password the password
+     * @param nickname the nickname (optional)
+     * @param realName the real name (optional)  
+     * @param gender the gender (optional)
      * @throws IllegalArgumentException if user with the same username already exists
      */
-    void createUser(String userName, String password);
+    void createUser(String userName, String password, String nickname, String realName, com.blockchain.csr.model.enums.Gender gender);
+
+    /**
+     * Create admin user.
+     *
+     * @param userName the user name
+     * @param password the password
+     * @param nickname the nickname (optional)
+     * @param realName the real name (optional)
+     * @param gender the gender (optional)
+     * @throws IllegalArgumentException if user with the same username already exists
+     */
+    void createAdminUser(String userName, String password, String nickname, String realName, com.blockchain.csr.model.enums.Gender gender);
 
     /**
      * Check if user exists by username.

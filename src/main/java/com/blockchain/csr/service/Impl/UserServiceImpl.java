@@ -38,7 +38,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public void createUser(String username, String password) {
+    public void createUser(String username, String password, String nickname, String realName, com.blockchain.csr.model.enums.Gender gender) {
         if (existsByUsername(username)) {
             throw new IllegalArgumentException("User with username '" + username + "' already exists");
         }
@@ -46,11 +46,25 @@ public class UserServiceImpl implements UserService {
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
         user.setRole(UserRole.USER.getValue()); // Set default role as USER
+        
+        // Set profile fields if provided
+        if (nickname != null) {
+            user.setNickname(nickname);
+        }
+        if (realName != null) {
+            user.setRealName(realName);
+        }
+        if (gender != null) {
+            user.setGender(gender.getValue());
+        }
+        
         userRepository.save(user);
-        log.info("Created new user: {} with role: {}", username, UserRole.USER);
+        log.info("Created new user: {} with role: {}, nickname: {}, realName: {}, gender: {}", 
+                username, UserRole.USER, nickname, realName, gender);
     }
 
-    public void createAdminUser(String username, String password) {
+    @Override
+    public void createAdminUser(String username, String password, String nickname, String realName, com.blockchain.csr.model.enums.Gender gender) {
         if (existsByUsername(username)) {
             throw new IllegalArgumentException("User with username '" + username + "' already exists");
         }
@@ -58,8 +72,21 @@ public class UserServiceImpl implements UserService {
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
         user.setRole(UserRole.ADMIN.getValue()); // Set role as ADMIN
+        
+        // Set profile fields if provided
+        if (nickname != null) {
+            user.setNickname(nickname);
+        }
+        if (realName != null) {
+            user.setRealName(realName);
+        }
+        if (gender != null) {
+            user.setGender(gender.getValue());
+        }
+        
         userRepository.save(user);
-        log.info("Created new admin user: {} with role: {}", username, UserRole.ADMIN);
+        log.info("Created new admin user: {} with role: {}, nickname: {}, realName: {}, gender: {}", 
+                username, UserRole.ADMIN, nickname, realName, gender);
     }
 
     @Override

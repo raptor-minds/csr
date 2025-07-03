@@ -12,6 +12,7 @@ import com.blockchain.csr.repository.UserActivityRepository;
 import com.blockchain.csr.repository.UserRepository;
 import java.util.List;
 import java.util.Date;
+import java.time.LocalDateTime;
 // 添加分页相关import
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
@@ -35,6 +36,8 @@ public class ActivityService{
 
     // 创建活动
     public int createActivity(Activity record) {
+        // Set created_at to current system time
+        record.setCreatedAt(LocalDateTime.now());
         activityRepository.save(record);
         return 1; // JPA doesn't return affected rows, assuming success
     }
@@ -58,6 +61,31 @@ public class ActivityService{
             Page<Activity> activityPage = activityRepository.findByEventId(eventId, pageable);
             return activityPage.getContent();
         }
+    }
+
+    /**
+     * Get total participants count for an activity (only SIGNED_UP users)
+     *
+     * @param activityId the activity ID
+     * @return number of signed up participants
+     */
+    public Integer getTotalParticipants(Integer activityId) {
+        Integer count = userActivityRepository.countSignedUpParticipantsByActivityId(activityId);
+        return count != null ? count : 0;
+    }
+
+    /**
+     * Calculate total time for an activity (participants * duration)
+     *
+     * @param activity the activity
+     * @param totalParticipants the number of participants
+     * @return total time (participants * duration)
+     */
+    public Integer calculateTotalTime(Activity activity, Integer totalParticipants) {
+        if (activity.getDuration() == null || totalParticipants == null) {
+            return 0;
+        }
+        return totalParticipants * activity.getDuration();
     }
 
     // 用户报名活动

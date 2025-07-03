@@ -32,7 +32,7 @@ public class UserActivityDto {
     /**
      * Activity duration
      */
-    private String duration;
+    private Integer duration;
     
     /**
      * User activity state (SIGNED_UP, WITHDRAWN)
