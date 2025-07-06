@@ -1923,3 +1923,82 @@ Allow users to withdraw from a specific activity. Changes the state from SIGNED_
 - Users can only withdraw from activities they are currently signed up for (state must be "SIGNED_UP")
 - After withdrawal, the state is changed to "WITHDRAWN"
 - Users who have withdrawn can sign up again (the signup API will change state back to "SIGNED_UP")
+
+---
+
+### 8. Get User Activities in Event
+获取用户在指定事件下参与的活动列表。
+
+**Endpoint**: `GET /api/activities`  
+**Authentication**: Bearer Token  
+**Authorization**: ADMIN role or the user themselves (JWT userId must match request userId)
+
+#### Query Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| userId | integer | Yes | 用户ID |
+| eventId | integer | Yes | 事件ID |
+
+#### Request Example
+```
+GET /api/activities?userId=1&eventId=1
+```
+
+#### Response Example
+```json
+{
+  "code": 200,
+  "message": "Success",
+  "data": [
+    {
+      "id": 1,
+      "name": "Community Cleanup",
+      "eventId": 1,
+      "templateId": 1,
+      "duration": 120,
+      "icon": "cleanup-icon",
+      "description": "Help clean up the local park",
+      "startTime": "2024-01-15T09:00:00",
+      "endTime": "2024-01-15T11:00:00",
+      "status": "ACTIVE",
+      "visibleLocations": ["New York", "Brooklyn"],
+      "visibleRoles": ["USER", "ADMIN"],
+      "createdAt": "2024-01-15T08:30:00"
+    }
+  ]
+}
+```
+
+#### Field Descriptions
+| Field | Type | Description |
+|-------|------|-------------|
+| id | integer | 活动ID |
+| name | string | 活动名称 |
+| eventId | integer | 关联的事件ID |
+| templateId | integer | 模板ID |
+| duration | integer | 活动时长（分钟） |
+| icon | string | 活动图标标识 |
+| description | string | 活动描述 |
+| startTime | string | 活动开始时间（ISO 8601格式） |
+| endTime | string | 活动结束时间（ISO 8601格式） |
+| status | string | 活动状态 |
+| visibleLocations | array | 活动可见位置 |
+| visibleRoles | array | 活动可见角色 |
+| createdAt | string | 活动创建时间（ISO 8601格式） |
+
+#### Error Responses
+
+##### Access Denied (403)
+```json
+{
+  "code": 403,
+  "message": "您只能查看自己的活动信息",
+  "data": null
+}
+```
+
+#### Business Rules
+- 管理员可以查询任意用户在指定事件下的活动
+- 普通用户只能查询自己在指定事件下的活动（JWT userId必须匹配请求中的userId）
+- 只返回用户已报名（SIGNED_UP状态）的活动
+- 如果用户在该事件下没有参与任何活动，返回空数组
