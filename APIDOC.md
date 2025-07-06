@@ -847,9 +847,236 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ---
 
+### 15. Update User Activity Detail
+Update detailed information for a user's activity participation.
+
+**Endpoint**: `POST /api/users/activity-detail`  
+**Authentication**: Bearer Token  
+**Authorization**: ADMIN role or the user themselves (JWT userId must match request userId)
+
+#### Request Body
+```json
+{
+  "userId": 1,
+  "activityId": 1,
+  "detail": {
+    "comment": "test"
+  }
+}
+```
+
+#### Request Body (for Donation Activities)
+```json
+{
+  "userId": 1,
+  "activityId": 2,
+  "detail": {
+    "comment": "test",
+    "amount": 12.34
+  }
+}
+```
+
+#### Field Descriptions
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| userId | integer | Yes | User ID whose activity detail to update |
+| activityId | integer | Yes | Activity ID to update details for |
+| detail | object | Yes | Detail object with different fields based on activity template |
+
+#### Detail Object Fields
+The detail object structure depends on the activity's template:
+
+**For Template ID 1 (Basic Activities):**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| comment | string | Yes | User's comment about the activity |
+
+**For Template ID 2 (Donation Activities):**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| comment | string | Yes | User's comment about the activity |
+| amount | decimal | Yes | Donation amount (must be greater than 0.01) |
+
+#### Response Example
+```json
+{
+  "code": 200,
+  "message": "Activity detail updated successfully",
+  "data": null
+}
+```
+
+#### Error Responses
+
+##### User Not Signed Up (400)
+```json
+{
+  "code": 400,
+  "message": "User has not signed up for this activity",
+  "data": null
+}
+```
+
+##### User Not Currently Signed Up (400)
+```json
+{
+  "code": 400,
+  "message": "User is not signed up for this activity",
+  "data": null
+}
+```
+
+##### Activity Not Found (400)
+```json
+{
+  "code": 400,
+  "message": "Activity not found",
+  "data": null
+}
+```
+
+##### Validation Error (400)
+```json
+{
+  "code": 400,
+  "message": "Comment is required",
+  "data": null
+}
+```
+
+##### Validation Error for Donation (400)
+```json
+{
+  "code": 400,
+  "message": "Amount must be greater than 0",
+  "data": null
+}
+```
+
+##### Access Denied (403)
+```json
+{
+  "code": 403,
+  "message": "Access denied. You can only update your own activity details.",
+  "data": null
+}
+```
+
+#### Business Rules
+- Only users who have signed up for an activity (state = "SIGNED_UP") can update their activity details
+- Users can only update their own activity details unless they are administrators
+- The detail format depends on the activity's template:
+  - Template ID 1: Basic format with only comment field
+  - Template ID 2: Donation format with comment and amount fields
+- The amount field for donation activities must be a positive decimal value greater than 0.01
+- The template_id is automatically set in the user_activity record based on the activity's template
+
+---
+
+### 16. Get User Activity Details
+Retrieve all activity details for a specific user.
+
+**Endpoint**: `GET /api/users/{userId}/activity-details`  
+**Authentication**: Bearer Token  
+**Authorization**: ADMIN role or the user themselves (JWT userId must match path userId)
+
+#### Path Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| userId | integer | Yes | User ID to retrieve activity details for |
+
+#### Request Example
+```
+GET /api/users/1/activity-details
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+#### Response Example
+```json
+{
+  "code": 200,
+  "message": "Success",
+  "data": {
+    "activityDetails": [
+      {
+        "activityId": 1,
+        "templateId": 1,
+        "details": {
+          "comment": "test"
+        }
+      },
+      {
+        "activityId": 2,
+        "templateId": 2,
+        "details": {
+          "comment": "test",
+          "amount": 100
+        }
+      }
+    ]
+  }
+}
+```
+
+#### Field Descriptions
+| Field | Type | Description |
+|-------|------|-------------|
+| activityDetails | array | List of activity details for the user |
+| activityId | integer | Activity ID |
+| templateId | integer | Template ID associated with the activity |
+| details | object | Detail object containing activity-specific information |
+
+#### Detail Object Structure
+The details object structure depends on the activity's template:
+
+**For Template ID 1 (Basic Activities):**
+```json
+{
+  "comment": "User's comment about the activity"
+}
+```
+
+**For Template ID 2 (Donation Activities):**
+```json
+{
+  "comment": "User's comment about the activity",
+  "amount": 100.50
+}
+```
+
+#### Error Responses
+
+##### Access Denied (403)
+```json
+{
+  "code": 403,
+  "message": "Access denied. You can only view your own activity details.",
+  "data": null
+}
+```
+
+##### Internal Server Error (500)
+```json
+{
+  "code": 500,
+  "message": "Failed to retrieve user activity details",
+  "data": null
+}
+```
+
+#### Business Rules
+- Only administrators can view any user's activity details
+- Regular users can only view their own activity details
+- Only activities with details are returned (activities without details are filtered out)
+- The template_id is retrieved from the activity table, not stored directly in user_activity
+- If an activity is deleted but the user_activity record remains, that entry will be filtered out
+
+---
+
 ## Test & Utility APIs
 
-### 14. Test Authentication
+### 17. Test Authentication
 Test user authentication and get user details.
 
 **Endpoint**: `POST /testAuth`  
@@ -890,7 +1117,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ---
 
-### 15. Admin Test
+### 18. Admin Test
 Test endpoint accessible only by administrators.
 
 **Endpoint**: `GET /admin/test`  
@@ -914,7 +1141,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ---
 
-### 16. User Test
+### 19. User Test
 Test endpoint accessible by users and administrators.
 
 **Endpoint**: `GET /user/test`  
@@ -938,7 +1165,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ---
 
-### 17. Get User Profile
+### 20. Get User Profile
 Get current authenticated user's profile information.
 
 **Endpoint**: `GET /profile`  
