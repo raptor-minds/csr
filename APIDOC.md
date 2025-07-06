@@ -2229,3 +2229,78 @@ GET /api/activities?userId=1&eventId=1
 - 普通用户只能查询自己在指定事件下的活动（JWT userId必须匹配请求中的userId）
 - 只返回用户已报名（SIGNED_UP状态）的活动
 - 如果用户在该事件下没有参与任何活动，返回空数组
+
+---
+
+## Template APIs
+
+### 1. Get Template List
+获取模板列表，支持按名称搜索。
+
+**Endpoint**: `GET /api/templates`  
+**Authentication**: None  
+**Authorization**: Public
+
+#### Query Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| name | string | No | 模板名称搜索关键词（模糊匹配） |
+
+#### Request Examples
+```
+GET /api/templates
+GET /api/templates?name=志愿者
+GET /api/templates?name=环保
+```
+
+#### Response Example
+```json
+{
+  "code": 200,
+  "message": "Success",
+  "data": [
+    {
+      "id": 1,
+      "name": "志愿者服务模板",
+      "totalTime": 120,
+      "fileLink": "https://example.com/volunteer-template.pdf",
+      "detail": "{\"description\": \"志愿者服务活动模板\", \"requirements\": [\"年龄18岁以上\", \"身体健康\", \"有责任心\"], \"activities\": [\"社区清洁\", \"老人陪伴\", \"儿童教育\"]}"
+    },
+    {
+      "id": 2,
+      "name": "环保活动模板",
+      "totalTime": 180,
+      "fileLink": "https://example.com/eco-template.pdf",
+      "detail": "{\"description\": \"环保主题活动模板\", \"requirements\": [\"热爱环保\", \"团队合作\"], \"activities\": [\"垃圾分类宣传\", \"植树造林\", \"环保讲座\"]}"
+    }
+  ]
+}
+```
+
+#### Field Descriptions
+| Field | Type | Description |
+|-------|------|-------------|
+| id | integer | 模板唯一标识 |
+| name | string | 模板名称 |
+| totalTime | integer | 模板预计总时间（分钟） |
+| fileLink | string | 模板文件下载链接 |
+| detail | string | JSON格式的详细信息，包含模板描述、要求和活动内容 |
+
+#### Error Responses
+
+##### Internal Server Error (500)
+```json
+{
+  "code": 500,
+  "message": "Failed to retrieve template list",
+  "data": null
+}
+```
+
+#### Business Rules
+- 无需认证即可访问
+- 支持按模板名称进行模糊搜索
+- 如果不提供name参数，返回所有模板
+- 如果提供name参数，返回名称包含该关键词的模板
+- detail字段为JSON字符串格式，包含模板的详细配置信息
+- 模板可用于快速创建标准化的活动
