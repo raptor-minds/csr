@@ -1,0 +1,55 @@
+{
+  "id": "csr-api-environment",
+  "name": "CSR API 测试环境",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "username",
+      "value": "testuser",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "password",
+      "value": "password123",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "eventId",
+      "value": "1",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "activityId",
+      "value": "1",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+} 
