@@ -1565,9 +1565,14 @@ Create a new activity within an event.
 {
   "code": 200,
   "message": "Success",
-  "data": 1
+  "data": {
+    "activityId": 1,
+    "message": "活动创建成功"
+  }
 }
 ```
+
+**Response Data**: The response contains both the activity ID and a success message.
 
 #### Field Descriptions
 | Field | Type | Required | Description |
@@ -1643,7 +1648,7 @@ Update an existing activity's information.
 ```json
 {
   "code": 200,
-  "message": "Success",
+  "message": "活动更新成功",
   "data": null
 }
 ```
@@ -1729,7 +1734,7 @@ DELETE /api/activities/1
 ```json
 {
   "code": 200,
-  "message": "Success",
+  "message": "活动删除成功",
   "data": null
 }
 ```
@@ -1784,7 +1789,7 @@ Allow users to sign up for a specific activity. Records are stored in the user_a
 ```json
 {
   "code": 200,
-  "message": "Signup successful",
+  "message": "活动报名成功",
   "data": null
 }
 ```
@@ -1864,7 +1869,7 @@ Allow users to withdraw from a specific activity. Changes the state from SIGNED_
 ```json
 {
   "code": 200,
-  "message": "Withdraw successful",
+  "message": "活动退出成功",
   "data": null
 }
 ```

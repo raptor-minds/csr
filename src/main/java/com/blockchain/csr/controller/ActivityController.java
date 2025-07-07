@@ -74,10 +74,16 @@ public class ActivityController {
 
     // 创建活动
     @PostMapping
-    public ResponseEntity<BaseResponse<Integer>> createActivity(@RequestBody @Validated(value = {ActivityRequestDto.CreateGroup.class}) ActivityRequestDto dto) {
+    public ResponseEntity<BaseResponse<Object>> createActivity(@RequestBody @Validated(value = {ActivityRequestDto.CreateGroup.class}) ActivityRequestDto dto) {
         Activity activity = activityMapper.toEntity(dto);
-        int activityId = activityService.createActivity(activity);
-        return ResponseEntity.ok(BaseResponse.success(activityId));
+        Integer activityId = activityService.createActivity(activity);
+        
+        // 创建包含活动ID和提示信息的响应对象
+        java.util.Map<String, Object> responseData = new java.util.HashMap<>();
+        responseData.put("activityId", activityId);
+        responseData.put("message", "活动创建成功");
+        
+        return ResponseEntity.ok(BaseResponse.success(responseData));
     }
 
     // 更新活动
@@ -86,15 +92,15 @@ public class ActivityController {
             @PathVariable Integer id, 
             @RequestBody @Validated(value = {ActivityRequestDto.UpdateGroup.class}) ActivityRequestDto dto) {
         if (id == null || id <= 0) {
-            return ResponseEntity.badRequest().body(BaseResponse.error("Invalid activity ID"));
+            return ResponseEntity.badRequest().body(BaseResponse.error("无效的活动ID"));
         }
         Activity existingActivity = activityService.getActivityById(id);
         if (existingActivity == null) {
-            return ResponseEntity.badRequest().body(BaseResponse.error("Activity not found"));
+            return ResponseEntity.badRequest().body(BaseResponse.error("活动不存在"));
         }
         activityMapper.updateEntityFromDto(dto, existingActivity);
         activityService.updateActivity(existingActivity);
-        return ResponseEntity.ok(BaseResponse.success());
+        return ResponseEntity.ok(BaseResponse.success("活动更新成功"));
     }
 
     // 删除活动
@@ -102,7 +108,7 @@ public class ActivityController {
     public ResponseEntity<BaseResponse<Object>> deleteActivity(@PathVariable Integer id) {
         // 实现逻辑：调用activityService删除活动
         activityService.deleteActivity(id);
-        return ResponseEntity.ok(BaseResponse.success());
+        return ResponseEntity.ok(BaseResponse.success("活动删除成功"));
     }
 
     // 用户报名活动
@@ -122,11 +128,11 @@ public class ActivityController {
         
         try {
             activityService.signupActivity(activityId, request.getUserId());
-            return ResponseEntity.ok(BaseResponse.success("Signup successful"));
+            return ResponseEntity.ok(BaseResponse.success("活动报名成功"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(BaseResponse.error(e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(BaseResponse.internalError("Internal server error"));
+            return ResponseEntity.status(500).body(BaseResponse.internalError("服务器内部错误"));
         }
     }
 
@@ -147,11 +153,11 @@ public class ActivityController {
         
         try {
             activityService.withdrawActivity(activityId, request.getUserId());
-            return ResponseEntity.ok(BaseResponse.success("Withdraw successful"));
+            return ResponseEntity.ok(BaseResponse.success("活动退出成功"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(BaseResponse.error(e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(BaseResponse.internalError("Internal server error"));
+            return ResponseEntity.status(500).body(BaseResponse.internalError("服务器内部错误"));
         }
     }
 
