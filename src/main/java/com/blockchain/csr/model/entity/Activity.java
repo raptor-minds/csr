@@ -53,6 +53,12 @@ public class Activity {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "image_1", length = 2000)
+    private String image1;
+
+    @Column(name = "image_2", length = 2000)
+    private String image2;
+
     // JPA relationships (optional - can be added later if needed)
     // @ManyToOne
     // @JoinColumn(name = "event_id", insertable = false, updatable = false)

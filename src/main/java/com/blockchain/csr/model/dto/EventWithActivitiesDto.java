@@ -26,4 +26,5 @@ public class EventWithActivitiesDto {
     private Integer totalParticipants;
     private Integer totalTime;
     private BigDecimal totalAmount;
+    private String detailImage;
 } 

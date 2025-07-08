@@ -56,4 +56,10 @@ public class ActivityRequestDto {
     @NotNull(message = "可见角色必须提供", groups = {CreateGroup.class})
     @Size(min = 1, message = "至少选择一个可见角色", groups = {CreateGroup.class, UpdateGroup.class})
     private List<String> visibleRoles;
+
+    @Size(max = 2000, message = "图片1长度不能超过2000个字符", groups = {CreateGroup.class, UpdateGroup.class})
+    private String image1;
+
+    @Size(max = 2000, message = "图片2长度不能超过2000个字符", groups = {CreateGroup.class, UpdateGroup.class})
+    private String image2;
 }
