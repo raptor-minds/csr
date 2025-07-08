@@ -68,7 +68,7 @@ public class Event {
     /**
     * 
     */
-    @Column(name = "avatar", length = 255)
+    @Column(name = "avatar", length = 2000)
     private String avatar;
 
     /**
@@ -100,4 +100,10 @@ public class Event {
     */
     @Column(name = "is_display")
     private Boolean isDisplay;
+
+    /**
+    * 详情图片
+    */
+    @Column(name = "detail_image", length = 2000)
+    private String detailImage;
 }

@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS `csr`.`event` (
   `visible_locations` VARCHAR(1000) NULL,
   `visible_roles` VARCHAR(1000) NULL,
   `is_display` BOOLEAN NULL DEFAULT TRUE,
+  `detail_image` VARCHAR(2000) NULL,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;
 
@@ -111,6 +112,8 @@ CREATE TABLE IF NOT EXISTS `csr`.`activity` (
   `visible_locations` JSON NULL,
   `visible_roles` JSON NULL,
   `created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+  `image_1` VARCHAR(2000) NULL,
+  `image_2` VARCHAR(2000) NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `activity_event_fk`
     FOREIGN KEY (`event_id`)

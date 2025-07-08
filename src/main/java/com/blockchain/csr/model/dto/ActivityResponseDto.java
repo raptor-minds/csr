@@ -28,4 +28,8 @@ public class ActivityResponseDto {
     // New fields for enhanced response
     private Integer totalParticipants;
     private Integer totalTime;
+    
+    // Image fields
+    private String image1;
+    private String image2;
 }

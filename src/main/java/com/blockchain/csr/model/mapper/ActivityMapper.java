@@ -25,6 +25,8 @@ public class ActivityMapper {
         entity.setStatus(dto.getStatus());
         entity.setVisibleLocations(convertToJson(dto.getVisibleLocations()));
         entity.setVisibleRoles(convertToJson(dto.getVisibleRoles()));
+        entity.setImage1(dto.getImage1());
+        entity.setImage2(dto.getImage2());
         return entity;
     }
 
@@ -43,6 +45,8 @@ public class ActivityMapper {
         dto.setVisibleLocations(convertToList(entity.getVisibleLocations()));
         dto.setVisibleRoles(convertToList(entity.getVisibleRoles()));
         dto.setCreatedAt(entity.getCreatedAt());
+        dto.setImage1(entity.getImage1());
+        dto.setImage2(entity.getImage2());
         return dto;
     }
 
@@ -81,6 +85,8 @@ public class ActivityMapper {
         if (dto.getStatus() != null) entity.setStatus(dto.getStatus());
         if (dto.getVisibleLocations() != null) entity.setVisibleLocations(convertToJson(dto.getVisibleLocations()));
         if (dto.getVisibleRoles() != null) entity.setVisibleRoles(convertToJson(dto.getVisibleRoles()));
+        if (dto.getImage1() != null) entity.setImage1(dto.getImage1());
+        if (dto.getImage2() != null) entity.setImage2(dto.getImage2());
     }
 
     String convertToJson(List<String> list) {

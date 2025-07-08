@@ -91,14 +91,17 @@ public class EventController {
                     .isDisplay(true) // 需补充字段
                     .bgImage(event.getAvatar())
                     .activities(activities)
-                    .createdAt(event.getCreatedAt() != null ? sdf.format(event.getCreatedAt()) : null);
+                    .createdAt(event.getCreatedAt() != null ? sdf.format(event.getCreatedAt()) : null)
+                    .detailImage(event.getDetailImage());
             
             // Add enhanced fields if requested
             if (needsTotal != null && needsTotal) {
                 Integer totalParticipants = eventService.getTotalParticipants(event.getId());
                 Integer totalTime = eventService.calculateTotalTime(event.getId());
+                java.math.BigDecimal totalAmount = eventService.calculateTotalAmount(event.getId());
                 builder.totalParticipants(totalParticipants)
-                       .totalTime(totalTime);
+                       .totalTime(totalTime)
+                       .totalAmount(totalAmount);
             }
             
             return builder.build();
@@ -144,6 +147,7 @@ public class EventController {
                 .visibleLocations(visibleLocations)
                 .visibleRoles(visibleRoles)
                 .createdAt(event.getCreatedAt() != null ? sdf.format(event.getCreatedAt()) : null)
+                .detailImage(event.getDetailImage())
                 .build();
         return ResponseEntity.ok(BaseResponse.success(detail));
     }
@@ -160,6 +164,7 @@ public class EventController {
             event.setIsDisplay(request.getIsDisplay());
             event.setVisibleLocations(objectMapper.writeValueAsString(request.getVisibleLocations()));
             event.setVisibleRoles(objectMapper.writeValueAsString(request.getVisibleRoles()));
+            event.setDetailImage(request.getDetailImage());
             // Set created_at to current system time
             event.setCreatedAt(new Date());
             eventRepository.save(event);
@@ -184,6 +189,7 @@ public class EventController {
             event.setIsDisplay(request.getIsDisplay());
             event.setVisibleLocations(objectMapper.writeValueAsString(request.getVisibleLocations()));
             event.setVisibleRoles(objectMapper.writeValueAsString(request.getVisibleRoles()));
+            event.setDetailImage(request.getDetailImage());
             eventRepository.save(event);
             return ResponseEntity.ok(BaseResponse.success("更新事件成功"));
 
