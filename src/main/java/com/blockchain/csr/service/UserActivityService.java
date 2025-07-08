@@ -69,28 +69,6 @@ public class UserActivityService{
     }
 
     /**
-     * Get user activities by user ID
-     *
-     * @param userId the user ID
-     * @return List of user activity DTOs
-     */
-    public List<UserActivityDto> getUserActivities(Integer userId) {
-        try {
-            log.info("Fetching activities for user ID: {}", userId);
-            
-            List<Object[]> results = userActivityRepository.findUserActivitiesWithEventInfo(userId);
-            
-            return results.stream()
-                    .map(this::convertToUserActivityDto)
-                    .collect(Collectors.toList());
-                    
-        } catch (Exception e) {
-            log.error("Error fetching activities for user ID {}: {}", userId, e.getMessage(), e);
-            throw new RuntimeException("Failed to fetch user activities", e);
-        }
-    }
-    
-    /**
      * Convert database result to UserActivityDto
      *
      * @param result the database result array
