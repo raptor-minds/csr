@@ -6,6 +6,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.List;
 import jakarta.validation.constraints.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * 用于活动请求的数据传输对象
@@ -25,8 +26,8 @@ public class ActivityRequestDto {
     @NotNull(message = "模板ID必须提供", groups = {CreateGroup.class})
     private Integer templateId;
 
-    @Null(message = "活动持续时间", groups = {CreateGroup.class})
-    private Integer duration = 0;
+    @Min(value = 0, message = "持续时间不能为负数", groups = {CreateGroup.class, UpdateGroup.class})
+    private Integer duration;
 
     @NotBlank(message = "图标不能为空", groups = {CreateGroup.class})
     @Size(max = 45, message = "图标长度不能超过45个字符", groups = {CreateGroup.class, UpdateGroup.class})
@@ -37,9 +38,11 @@ public class ActivityRequestDto {
     private String description;
 
     @NotNull(message = "开始时间必须提供", groups = {CreateGroup.class})
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "GMT+8")
     private LocalDateTime startTime;
 
     @NotNull(message = "结束时间必须提供", groups = {CreateGroup.class})
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "GMT+8")
     private LocalDateTime endTime;
 
     @NotBlank(message = "状态不能为空", groups = {CreateGroup.class})

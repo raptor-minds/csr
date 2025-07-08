@@ -1628,12 +1628,12 @@ GET /api/activities?eventId=1&page=1&pageSize=10&needsTotal=true
       "duration": 120,
       "icon": "cleanup-icon",
       "description": "Help clean up the local park",
-      "startTime": "2024-01-15T09:00:00",
-      "endTime": "2024-01-15T11:00:00",
+      "startTime": "2024-01-15 09:00",
+      "endTime": "2024-01-15 11:00",
       "status": "ACTIVE",
       "visibleLocations": ["New York", "Brooklyn"],
       "visibleRoles": ["USER", "ADMIN"],
-      "createdAt": "2024-01-15T08:30:00",
+      "createdAt": "2024-01-15 08:30",
       "totalParticipants": 15,
       "totalTime": 1800
     }
@@ -1655,12 +1655,12 @@ GET /api/activities?eventId=1&page=1&pageSize=10&needsTotal=true
       "duration": 120,
       "icon": "cleanup-icon",
       "description": "Help clean up the local park",
-      "startTime": "2024-01-15T09:00:00",
-      "endTime": "2024-01-15T11:00:00",
+      "startTime": "2024-01-15 09:00",
+      "endTime": "2024-01-15 11:00",
       "status": "ACTIVE",
       "visibleLocations": ["New York", "Brooklyn"],
       "visibleRoles": ["USER", "ADMIN"],
-      "createdAt": "2024-01-15T08:30:00"
+      "createdAt": "2024-01-15 08:30"
     }
   ]
 }
@@ -1676,12 +1676,12 @@ GET /api/activities?eventId=1&page=1&pageSize=10&needsTotal=true
 | duration | integer | Activity duration in minutes |
 | icon | string | Icon identifier for the activity |
 | description | string | Activity description |
-| startTime | string | Activity start time (ISO 8601 format) |
-| endTime | string | Activity end time (ISO 8601 format) |
+| startTime | string | Activity start time (format: yyyy-MM-dd HH:mm) |
+| endTime | string | Activity end time (format: yyyy-MM-dd HH:mm) |
 | status | string | Activity status |
 | visibleLocations | array | Locations where this activity is visible |
 | visibleRoles | array | User roles that can see this activity |
-| createdAt | string | Activity creation timestamp (ISO 8601 format) |
+| createdAt | string | Activity creation timestamp (format: yyyy-MM-dd HH:mm) |
 | totalParticipants | integer | **[Enhanced]** Total number of users signed up (only when needsTotal=true) |
 | totalTime | integer | **[Enhanced]** Total time in minutes (totalParticipants × duration, only when needsTotal=true) |
 
@@ -1723,12 +1723,12 @@ GET /api/activities/1
     "duration": 120,
     "icon": "cleanup-icon",
     "description": "Help clean up the local park",
-    "startTime": "2024-01-15T09:00:00",
-    "endTime": "2024-01-15T11:00:00",
+    "startTime": "2024-01-15 09:00",
+    "endTime": "2024-01-15 11:00",
     "status": "ACTIVE",
     "visibleLocations": ["New York", "Brooklyn"],
     "visibleRoles": ["USER", "ADMIN"],
-    "createdAt": "2024-01-15T08:30:00"
+    "createdAt": "2024-01-15 08:30"
   }
 }
 ```
@@ -1743,12 +1743,12 @@ GET /api/activities/1
 | duration | integer | Activity duration in minutes |
 | icon | string | Icon identifier for the activity |
 | description | string | Activity description |
-| startTime | string | Activity start time (ISO 8601 format) |
-| endTime | string | Activity end time (ISO 8601 format) |
+| startTime | string | Activity start time (format: yyyy-MM-dd HH:mm) |
+| endTime | string | Activity end time (format: yyyy-MM-dd HH:mm) |
 | status | string | Activity status |
 | visibleLocations | array | Locations where this activity is visible |
 | visibleRoles | array | User roles that can see this activity |
-| createdAt | string | Activity creation timestamp (ISO 8601 format) |
+| createdAt | string | Activity creation timestamp (format: yyyy-MM-dd HH:mm) |
 
 #### Error Responses
 
@@ -1779,8 +1779,8 @@ Create a new activity within an event.
   "duration": 120,
   "icon": "cleanup-icon",
   "description": "Help clean up the local park",
-  "startTime": "2024-01-15T09:00:00",
-  "endTime": "2024-01-15T11:00:00",
+  "startTime": "2024-01-15 09:00",
+  "endTime": "2024-01-15 11:00",
   "status": "not_registered",
   "visibleLocations": ["New York", "Brooklyn"],
   "visibleRoles": ["USER", "ADMIN"]
@@ -1792,9 +1792,14 @@ Create a new activity within an event.
 {
   "code": 200,
   "message": "Success",
-  "data": 1
+  "data": {
+    "activityId": 1,
+    "message": "活动创建成功"
+  }
 }
 ```
+
+**Response Data**: The response contains both the activity ID and a success message.
 
 #### Field Descriptions
 | Field | Type | Required | Description |
@@ -1802,16 +1807,20 @@ Create a new activity within an event.
 | name | string | Yes | Activity name (max 45 characters) |
 | eventId | integer | Yes | Associated event ID |
 | templateId | integer | Yes | Template ID to use for this activity |
-| duration | integer | No | Activity duration in minutes (default: 0) |
+| duration | integer | No | Activity duration in minutes (must be manually specified, cannot be negative) |
 | icon | string | Yes | Icon identifier (max 45 characters) |
 | description | string | Yes | Activity description (max 1000 characters) |
-| startTime | string | Yes | Activity start time (ISO 8601 format) |
-| endTime | string | Yes | Activity end time (ISO 8601 format) |
+| startTime | string | Yes | Activity start time (format: yyyy-MM-dd HH:mm) |
+| endTime | string | Yes | Activity end time (format: yyyy-MM-dd HH:mm) |
 | status | string | Yes | Activity status. Valid values: "not_registered", "registering", "full", "ended" |
 | visibleLocations | array | Yes | Locations where this activity is visible (at least 1 required) |
 | visibleRoles | array | Yes | User roles that can see this activity (at least 1 required) |
 
 **Note**: The `createdAt` field is automatically set to the current system time when creating an activity and cannot be specified in the request.
+
+**Duration Field**: The `duration` field must be manually specified when creating an activity. It represents the time duration in minutes for this specific activity. This value is independent of the template's `total_time` field and should be set based on the actual activity requirements.
+
+**DateTime Format**: All date and time fields use the format `yyyy-MM-dd HH:mm` (e.g., "2024-01-15 09:00"). Do not include seconds or use ISO 8601 format.
 
 #### Error Responses
 
@@ -1854,8 +1863,8 @@ Update an existing activity's information.
   "duration": 150,
   "icon": "new-cleanup-icon",
   "description": "Updated description for the park cleanup",
-  "startTime": "2024-01-15T10:00:00",
-  "endTime": "2024-01-15T12:30:00",
+  "startTime": "2024-01-15 10:00",
+  "endTime": "2024-01-15 12:30",
   "status": "registering",
   "visibleLocations": ["New York", "Brooklyn", "Queens"],
   "visibleRoles": ["USER", "ADMIN"]
@@ -1866,7 +1875,7 @@ Update an existing activity's information.
 ```json
 {
   "code": 200,
-  "message": "Success",
+  "message": "活动更新成功",
   "data": null
 }
 ```
@@ -1880,8 +1889,8 @@ Update an existing activity's information.
 | duration | integer | No | Activity duration in minutes |
 | icon | string | No | Icon identifier (max 45 characters) |
 | description | string | No | Activity description (max 1000 characters) |
-| startTime | string | No | Activity start time (ISO 8601 format) |
-| endTime | string | No | Activity end time (ISO 8601 format) |
+| startTime | string | No | Activity start time (format: yyyy-MM-dd HH:mm) |
+| endTime | string | No | Activity end time (format: yyyy-MM-dd HH:mm) |
 | status | string | No | Activity status. Valid values: "not_registered", "registering", "full", "ended" |
 | visibleLocations | array | No | Locations where this activity is visible (at least 1 required if provided) |
 | visibleRoles | array | No | User roles that can see this activity (at least 1 required if provided) |
@@ -1952,7 +1961,7 @@ DELETE /api/activities/1
 ```json
 {
   "code": 200,
-  "message": "Success",
+  "message": "活动删除成功",
   "data": null
 }
 ```
@@ -2007,7 +2016,7 @@ Allow users to sign up for a specific activity. Records are stored in the user_a
 ```json
 {
   "code": 200,
-  "message": "Signup successful",
+  "message": "活动报名成功",
   "data": null
 }
 ```
@@ -2087,7 +2096,7 @@ Allow users to withdraw from a specific activity. Changes the state from SIGNED_
 ```json
 {
   "code": 200,
-  "message": "Withdraw successful",
+  "message": "活动退出成功",
   "data": null
 }
 ```

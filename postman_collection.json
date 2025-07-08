@@ -47,7 +47,8 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\"name\":\"更新后的技术峰会\",\"eventId\":\"1\",\"templateId\":\"101\",\"totalTime\":\"180\",\"icon\":\"icon-tech-updated\",\"description\":\"更新后的年度技术盛会\",\"startTime\":\"2025-06-02T09:00:00\",\"endTime\":\"2025-06-02T17:00:00\",\"status\":\"full\",\"visibleLocations\":[\"上海\",\"广州\"],\"visibleRoles\":[\"user\"]}"        },
+          "raw": "{\"name\":\"更新后的技术峰会\",\"eventId\":1,\"templateId\":1,\"duration\":180,\"icon\":\"icon-tech-updated\",\"description\":\"更新后的年度技术盛会\",\"startTime\":\"2025-06-02 09:00\",\"endTime\":\"2025-06-02 17:00\",\"status\":\"full\",\"visibleLocations\":[\"上海\",\"广州\"],\"visibleRoles\":[\"user\"]}"
+        },
         "url": {
           "raw": "http://localhost:8080/api/activities/1",
           "protocol": "http",

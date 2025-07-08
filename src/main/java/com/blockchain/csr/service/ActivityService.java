@@ -35,11 +35,11 @@ public class ActivityService{
     }
 
     // 创建活动
-    public int createActivity(Activity record) {
+    public Integer createActivity(Activity record) {
         // Set created_at to current system time
         record.setCreatedAt(LocalDateTime.now());
-        activityRepository.save(record);
-        return 1; // JPA doesn't return affected rows, assuming success
+        Activity savedActivity = activityRepository.save(record);
+        return savedActivity.getId(); // 返回实际创建的活动ID
     }
 
     // 更新活动
