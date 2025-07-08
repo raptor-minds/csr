@@ -1333,7 +1333,8 @@ GET /api/events?eventName=Annual&needsTotal=true
           }
         ],
         "totalParticipants": 25,
-        "totalTime": 1200
+        "totalTime": 1200,
+        "totalAmount": 1500.50
       }
     ],
     "total": 5,
@@ -1391,6 +1392,7 @@ GET /api/events?eventName=Annual&needsTotal=true
 | activities | array | List of activities within the event |
 | totalParticipants | integer | **[Enhanced]** Total unique participants across all activities (only when needsTotal=true) |
 | totalTime | integer | **[Enhanced]** Sum of total time from all activities in minutes (only when needsTotal=true) |
+| totalAmount | decimal | **[Enhanced]** Total donation amount from all activities with templateId 2 (only when needsTotal=true) |
 
 #### Activity Field Descriptions
 | Field | Type | Description |
@@ -1412,7 +1414,8 @@ GET /api/events?eventName=Annual&needsTotal=true
 - Only users with "SIGNED_UP" state in the user_activity table are counted
 - **Event Level**: The `totalTime` field is the sum of (participants × duration) for each activity in the event
 - **Activity Level**: Each activity's `totalTime` field is calculated as (activity participants × activity duration)
-- Enhanced fields (`totalParticipants` and `totalTime`) are only included for both events and activities when `needsTotal=true`
+- **Event Level**: The `totalAmount` field is the sum of donation amounts from all activities with templateId 2 (donation activities) where users are signed up
+- Enhanced fields (`totalParticipants`, `totalTime`, and `totalAmount`) are only included for both events and activities when `needsTotal=true`
 - If `needsTotal=false` or omitted, the response will not include the enhanced fields for better performance
 - Pagination is 1-based (page=1 is the first page)
 - Pagination works correctly with event name filtering - `total` reflects the count of filtered results

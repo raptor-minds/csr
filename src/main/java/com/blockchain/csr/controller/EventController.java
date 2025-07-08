@@ -97,8 +97,10 @@ public class EventController {
             if (needsTotal != null && needsTotal) {
                 Integer totalParticipants = eventService.getTotalParticipants(event.getId());
                 Integer totalTime = eventService.calculateTotalTime(event.getId());
+                java.math.BigDecimal totalAmount = eventService.calculateTotalAmount(event.getId());
                 builder.totalParticipants(totalParticipants)
-                       .totalTime(totalTime);
+                       .totalTime(totalTime)
+                       .totalAmount(totalAmount);
             }
             
             return builder.build();

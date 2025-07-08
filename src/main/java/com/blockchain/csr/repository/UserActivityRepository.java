@@ -57,6 +57,15 @@ public interface UserActivityRepository extends JpaRepository<UserActivity, Inte
     boolean existsByUserIdAndActivityId(Integer userId, Integer activityId);
     
     /**
+     * Find user activities by multiple activity IDs and state
+     *
+     * @param activityIds the list of activity IDs
+     * @param state the state
+     * @return List<UserActivity>
+     */
+    List<UserActivity> findByActivityIdInAndState(List<Integer> activityIds, String state);
+    
+    /**
      * Count participants with SIGNED_UP state for a specific activity
      *
      * @param activityId the activity ID
