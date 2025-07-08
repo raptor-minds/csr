@@ -52,48 +52,4 @@ public class UserActivityService{
         userActivityRepository.save(record);
         return 1; // JPA doesn't return affected rows, assuming success
     }
-
-    /**
-     * Get user activities by user ID
-     *
-     * @param userId the user ID
-     * @return List of user activity DTOs
-     */
-    public List<UserActivityDto> getUserActivities(Integer userId) {
-        try {
-            log.info("Fetching activities for user ID: {}", userId);
-            
-            List<Object[]> results = userActivityRepository.findUserActivitiesWithEventInfo(userId);
-            
-            return results.stream()
-                    .map(this::convertToUserActivityDto)
-                    .collect(Collectors.toList());
-                    
-        } catch (Exception e) {
-            log.error("Error fetching activities for user ID {}: {}", userId, e.getMessage(), e);
-            throw new RuntimeException("Failed to fetch user activities", e);
-        }
-    }
-    
-    /**
-     * Convert database result to UserActivityDto
-     *
-     * @param result the database result array
-     * @return UserActivityDto
-     */
-    private UserActivityDto convertToUserActivityDto(Object[] result) {
-        Integer activityId = (Integer) result[0];
-        String activityName = (String) result[1];
-        String eventName = (String) result[2];
-        Integer duration = (Integer) result[3];
-        String state = (String) result[4];
-        
-        return UserActivityDto.builder()
-                .id(activityId)
-                .name(activityName)
-                .eventName(eventName)
-                .duration(duration)
-                .state(state)
-                .build();
-    }
 }

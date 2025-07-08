@@ -16,6 +16,9 @@ import java.time.LocalDateTime;
 // 添加分页相关import
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
+import java.util.Map;
+import java.util.stream.Collectors;
+import com.blockchain.csr.model.dto.UserActivityDto;
 
 /**
  * @author zhangrucheng on 2025/5/19
@@ -159,14 +162,58 @@ public class ActivityService{
     /**
      * 获取用户在某事件下参与的所有活动
      */
-    public List<Activity> getUserActivitiesByEvent(Integer userId, Integer eventId) {
+    public List<UserActivityDto> getUserActivitiesByEvent(Integer userId, Integer eventId, Integer page, Integer pageSize) {
         List<UserActivity> userActivities = userActivityRepository.findByUserIdAndEventId(userId, eventId);
-        // 只返回用户已报名的活动
         List<Integer> activityIds = userActivities.stream()
                 .filter(ua -> ua.getState() != null && ua.getState().equals("SIGNED_UP"))
                 .map(UserActivity::getActivityId)
                 .toList();
         if (activityIds.isEmpty()) return List.of();
-        return activityRepository.findAllById(activityIds);
+
+        Pageable pageable = Pageable.ofSize(pageSize != null ? pageSize : 10).withPage(page != null ? page - 1 : 0);
+        Page<Activity> activityPage = activityRepository.findByIdIn(activityIds, pageable);
+        List<Activity> pagedActivities = activityPage.getContent();
+
+        // 以 activityId 为 key，便于快速查找
+        Map<Integer, UserActivity> uaMap = userActivities.stream()
+                .collect(Collectors.toMap(UserActivity::getActivityId, ua -> ua, (a, b) -> a));
+
+        // 组装DTO
+        return pagedActivities.stream()
+                .map(act -> {
+                    UserActivity ua = uaMap.get(act.getId());
+                    if (ua == null) return null;
+                    UserActivityDto dto = new UserActivityDto();
+                    dto.setId(ua.getId());
+                    dto.setUserId(ua.getUserId());
+                    dto.setActivityId(ua.getActivityId());
+                    dto.setState(ua.getState());
+                    dto.setEndorsedBy(ua.getEndorsedBy());
+                    dto.setEndorsedAt(ua.getEndorsedAt());
+                    dto.setCreatedAt(ua.getCreatedAt());
+                    dto.setChainId(ua.getChainId());
+                    dto.setDetail(ua.getDetail());
+                    // 业务字段
+                    dto.setName(act.getName());
+                    dto.setDuration(act.getDuration());
+                    // eventName 可选：如需可补充
+                    return dto;
+                })
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toList());
     }
+
+//    /**
+//     * 获取某用户已报名的所有活动
+//     */
+//    public List<Activity> getUserActivities(Integer userId) {
+//        List<UserActivity> userActivities = userActivityRepository.findByUserId(userId);
+//        // 只返回用户已报名的活动
+//        List<Integer> activityIds = userActivities.stream()
+//                .filter(ua -> ua.getState() != null && ua.getState().equals("SIGNED_UP"))
+//                .map(UserActivity::getActivityId)
+//                .toList();
+//        if (activityIds.isEmpty()) return List.of();
+//        return activityRepository.findAllById(activityIds);
+//    }
 }
