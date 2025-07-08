@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.math.BigDecimal;
 
 @Data
 @Builder
@@ -24,4 +25,6 @@ public class EventWithActivitiesDto {
     // New fields for enhanced response
     private Integer totalParticipants;
     private Integer totalTime;
+    private BigDecimal totalAmount;
+    private String detailImage;
 } 

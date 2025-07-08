@@ -7,12 +7,17 @@ import lombok.RequiredArgsConstructor;
 
 import com.blockchain.csr.model.entity.Event;
 import com.blockchain.csr.model.entity.Activity;
+import com.blockchain.csr.model.entity.UserActivity;
 import com.blockchain.csr.repository.EventRepository;
 import com.blockchain.csr.repository.ActivityRepository;
 import com.blockchain.csr.repository.UserActivityRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Date;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.math.BigDecimal;
 /**
  * @author zhangrucheng on 2025/5/19
  */
@@ -24,6 +29,7 @@ public class EventService{
     private final EventRepository eventRepository;
     private final ActivityRepository activityRepository;
     private final UserActivityRepository userActivityRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     
     public int deleteByPrimaryKey(Integer id) {
@@ -88,5 +94,59 @@ public class EventService{
         }
         
         return totalTime;
+    }
+
+    /**
+     * Calculate total amount for an event (sum of donation amounts from activities with templateId = 2)
+     *
+     * @param eventId the event ID
+     * @return total donation amount
+     */
+    public BigDecimal calculateTotalAmount(Integer eventId) {
+        List<Activity> activities = activityRepository.findByEventId(eventId);
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        
+        // Collect all activity IDs that have templateId = 2 (donation activities)
+        List<Integer> donationActivityIds = activities.stream()
+                .filter(activity -> activity.getTemplateId() != null && activity.getTemplateId().equals(2))
+                .map(Activity::getId)
+                .collect(Collectors.toList());
+        
+        // If no donation activities, return zero
+        if (donationActivityIds.isEmpty()) {
+            return totalAmount;
+        }
+        
+        // Get all user activities for donation activities with SIGNED_UP state in one database call
+        List<UserActivity> userActivities = userActivityRepository.findByActivityIdInAndState(donationActivityIds, "SIGNED_UP");
+        
+        // Process all user activities to sum up the amounts
+        for (UserActivity userActivity : userActivities) {
+            if (userActivity.getDetail() != null) {
+                try {
+                    // Parse JSON detail to extract amount
+                    Map<String, Object> detail = objectMapper.readValue(userActivity.getDetail(), Map.class);
+                    Object amountObj = detail.get("amount");
+                    
+                    if (amountObj != null) {
+                        BigDecimal amount;
+                        if (amountObj instanceof Number) {
+                            amount = BigDecimal.valueOf(((Number) amountObj).doubleValue());
+                        } else if (amountObj instanceof String) {
+                            amount = new BigDecimal((String) amountObj);
+                        } else {
+                            continue; // Skip invalid amount formats
+                        }
+                        
+                        totalAmount = totalAmount.add(amount);
+                    }
+                } catch (Exception e) {
+                    // Skip invalid JSON or amount parsing errors
+                    continue;
+                }
+            }
+        }
+        
+        return totalAmount;
     }
 }

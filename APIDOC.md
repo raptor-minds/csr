@@ -847,9 +847,236 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ---
 
+### 15. Update User Activity Detail
+Update detailed information for a user's activity participation.
+
+**Endpoint**: `POST /api/users/activity-detail`  
+**Authentication**: Bearer Token  
+**Authorization**: ADMIN role or the user themselves (JWT userId must match request userId)
+
+#### Request Body
+```json
+{
+  "userId": 1,
+  "activityId": 1,
+  "detail": {
+    "comment": "test"
+  }
+}
+```
+
+#### Request Body (for Donation Activities)
+```json
+{
+  "userId": 1,
+  "activityId": 2,
+  "detail": {
+    "comment": "test",
+    "amount": 12.34
+  }
+}
+```
+
+#### Field Descriptions
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| userId | integer | Yes | User ID whose activity detail to update |
+| activityId | integer | Yes | Activity ID to update details for |
+| detail | object | Yes | Detail object with different fields based on activity template |
+
+#### Detail Object Fields
+The detail object structure depends on the activity's template:
+
+**For Template ID 1 (Basic Activities):**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| comment | string | Yes | User's comment about the activity |
+
+**For Template ID 2 (Donation Activities):**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| comment | string | Yes | User's comment about the activity |
+| amount | decimal | Yes | Donation amount (must be greater than 0.01) |
+
+#### Response Example
+```json
+{
+  "code": 200,
+  "message": "Activity detail updated successfully",
+  "data": null
+}
+```
+
+#### Error Responses
+
+##### User Not Signed Up (400)
+```json
+{
+  "code": 400,
+  "message": "User has not signed up for this activity",
+  "data": null
+}
+```
+
+##### User Not Currently Signed Up (400)
+```json
+{
+  "code": 400,
+  "message": "User is not signed up for this activity",
+  "data": null
+}
+```
+
+##### Activity Not Found (400)
+```json
+{
+  "code": 400,
+  "message": "Activity not found",
+  "data": null
+}
+```
+
+##### Validation Error (400)
+```json
+{
+  "code": 400,
+  "message": "Comment is required",
+  "data": null
+}
+```
+
+##### Validation Error for Donation (400)
+```json
+{
+  "code": 400,
+  "message": "Amount must be greater than 0",
+  "data": null
+}
+```
+
+##### Access Denied (403)
+```json
+{
+  "code": 403,
+  "message": "Access denied. You can only update your own activity details.",
+  "data": null
+}
+```
+
+#### Business Rules
+- Only users who have signed up for an activity (state = "SIGNED_UP") can update their activity details
+- Users can only update their own activity details unless they are administrators
+- The detail format depends on the activity's template:
+  - Template ID 1: Basic format with only comment field
+  - Template ID 2: Donation format with comment and amount fields
+- The amount field for donation activities must be a positive decimal value greater than 0.01
+- The template_id is automatically set in the user_activity record based on the activity's template
+
+---
+
+### 16. Get User Activity Details
+Retrieve all activity details for a specific user.
+
+**Endpoint**: `GET /api/users/{userId}/activity-details`  
+**Authentication**: Bearer Token  
+**Authorization**: ADMIN role or the user themselves (JWT userId must match path userId)
+
+#### Path Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| userId | integer | Yes | User ID to retrieve activity details for |
+
+#### Request Example
+```
+GET /api/users/1/activity-details
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+#### Response Example
+```json
+{
+  "code": 200,
+  "message": "Success",
+  "data": {
+    "activityDetails": [
+      {
+        "activityId": 1,
+        "templateId": 1,
+        "details": {
+          "comment": "test"
+        }
+      },
+      {
+        "activityId": 2,
+        "templateId": 2,
+        "details": {
+          "comment": "test",
+          "amount": 100
+        }
+      }
+    ]
+  }
+}
+```
+
+#### Field Descriptions
+| Field | Type | Description |
+|-------|------|-------------|
+| activityDetails | array | List of activity details for the user |
+| activityId | integer | Activity ID |
+| templateId | integer | Template ID associated with the activity |
+| details | object | Detail object containing activity-specific information |
+
+#### Detail Object Structure
+The details object structure depends on the activity's template:
+
+**For Template ID 1 (Basic Activities):**
+```json
+{
+  "comment": "User's comment about the activity"
+}
+```
+
+**For Template ID 2 (Donation Activities):**
+```json
+{
+  "comment": "User's comment about the activity",
+  "amount": 100.50
+}
+```
+
+#### Error Responses
+
+##### Access Denied (403)
+```json
+{
+  "code": 403,
+  "message": "Access denied. You can only view your own activity details.",
+  "data": null
+}
+```
+
+##### Internal Server Error (500)
+```json
+{
+  "code": 500,
+  "message": "Failed to retrieve user activity details",
+  "data": null
+}
+```
+
+#### Business Rules
+- Only administrators can view any user's activity details
+- Regular users can only view their own activity details
+- Only activities with details are returned (activities without details are filtered out)
+- The template_id is retrieved from the activity table, not stored directly in user_activity
+- If an activity is deleted but the user_activity record remains, that entry will be filtered out
+
+---
+
 ## Test & Utility APIs
 
-### 14. Test Authentication
+### 17. Test Authentication
 Test user authentication and get user details.
 
 **Endpoint**: `POST /testAuth`  
@@ -890,7 +1117,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ---
 
-### 15. Admin Test
+### 18. Admin Test
 Test endpoint accessible only by administrators.
 
 **Endpoint**: `GET /admin/test`  
@@ -914,7 +1141,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ---
 
-### 16. User Test
+### 19. User Test
 Test endpoint accessible by users and administrators.
 
 **Endpoint**: `GET /user/test`  
@@ -938,7 +1165,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ---
 
-### 17. Get User Profile
+### 20. Get User Profile
 Get current authenticated user's profile information.
 
 **Endpoint**: `GET /profile`  
@@ -1106,7 +1333,9 @@ GET /api/events?eventName=Annual&needsTotal=true
           }
         ],
         "totalParticipants": 25,
-        "totalTime": 1200
+        "totalTime": 1200,
+        "totalAmount": 1500.50,
+        "detailImage": "https://example.com/event-detail.jpg"
       }
     ],
     "total": 5,
@@ -1141,7 +1370,8 @@ GET /api/events?eventName=Annual&needsTotal=true
             "status": "ACTIVE",
             "createdAt": "2024-03-15 14:45"
           }
-        ]
+        ],
+        "detailImage": "https://example.com/event-detail.jpg"
       }
     ],
     "total": 5,
@@ -1164,6 +1394,8 @@ GET /api/events?eventName=Annual&needsTotal=true
 | activities | array | List of activities within the event |
 | totalParticipants | integer | **[Enhanced]** Total unique participants across all activities (only when needsTotal=true) |
 | totalTime | integer | **[Enhanced]** Sum of total time from all activities in minutes (only when needsTotal=true) |
+| totalAmount | decimal | **[Enhanced]** Total donation amount from all activities with templateId 2 (only when needsTotal=true) |
+| detailImage | string | Event detail image URL or path (max 2000 characters) |
 
 #### Activity Field Descriptions
 | Field | Type | Description |
@@ -1185,7 +1417,8 @@ GET /api/events?eventName=Annual&needsTotal=true
 - Only users with "SIGNED_UP" state in the user_activity table are counted
 - **Event Level**: The `totalTime` field is the sum of (participants × duration) for each activity in the event
 - **Activity Level**: Each activity's `totalTime` field is calculated as (activity participants × activity duration)
-- Enhanced fields (`totalParticipants` and `totalTime`) are only included for both events and activities when `needsTotal=true`
+- **Event Level**: The `totalAmount` field is the sum of donation amounts from all activities with templateId 2 (donation activities) where users are signed up
+- Enhanced fields (`totalParticipants`, `totalTime`, and `totalAmount`) are only included for both events and activities when `needsTotal=true`
 - If `needsTotal=false` or omitted, the response will not include the enhanced fields for better performance
 - Pagination is 1-based (page=1 is the first page)
 - Pagination works correctly with event name filtering - `total` reflects the count of filtered results
@@ -1214,7 +1447,8 @@ GET /api/events?eventName=Annual&needsTotal=true
     "is_display": true,
     "visibleLocations": ["Shanghai", "Shenzhen"],
     "visibleRoles": ["admin", "user"],
-    "createdAt": "2024-06-28 10:15"
+    "createdAt": "2024-06-28 10:15",
+    "detailImage": "https://example.com/event-detail.jpg"
   }
 }
 ```
@@ -1232,6 +1466,7 @@ GET /api/events?eventName=Annual&needsTotal=true
 | visibleLocations | array | Locations where this event is visible |
 | visibleRoles | array | User roles that can see this event |
 | createdAt | string | Event creation timestamp (yyyy-MM-dd HH:mm format) |
+| detailImage | string | Event detail image URL or path (max 2000 characters) |
 
 ---
 
@@ -1248,7 +1483,8 @@ GET /api/events?eventName=Annual&needsTotal=true
   "description": "Detailed event description...",
   "isDisplay": true,
   "visibleLocations": ["Shanghai"],
-  "visibleRoles": ["admin", "user"]
+  "visibleRoles": ["admin", "user"],
+  "detailImage": "https://example.com/event-detail.jpg"
 }
 ```
 
@@ -1263,6 +1499,7 @@ GET /api/events?eventName=Annual&needsTotal=true
 | isDisplay | boolean | 是 | 是否展示 |
 | visibleLocations | array | 是 | 可见地区 |
 | visibleRoles | array | 是 | 可见角色 |
+| detailImage | string | 否 | 事件详情图片 (最大2000字符) |
 
 **Note**: The `createdAt` field is automatically set to the current system time when creating an event and cannot be specified in the request.
 
@@ -1315,7 +1552,8 @@ GET /api/events?eventName=Annual&needsTotal=true
     "is_display": true,
     "visibleLocations": ["Shanghai", "Shenzhen"],
     "visibleRoles": ["admin", "user"],
-    "createdAt": "2024-06-28 10:15"
+    "createdAt": "2024-06-28 10:15",
+    "detailImage": "https://example.com/event-detail.jpg"
   }
 }
 ```
@@ -1408,7 +1646,9 @@ GET /api/activities?eventId=1&page=1&pageSize=10&needsTotal=true
       "visibleRoles": ["USER", "ADMIN"],
       "createdAt": "2024-01-15 08:30",
       "totalParticipants": 15,
-      "totalTime": 1800
+      "totalTime": 1800,
+      "image1": "https://example.com/image1.jpg",
+      "image2": "https://example.com/image2.jpg"
     }
   ]
 }
@@ -1433,7 +1673,9 @@ GET /api/activities?eventId=1&page=1&pageSize=10&needsTotal=true
       "status": "ACTIVE",
       "visibleLocations": ["New York", "Brooklyn"],
       "visibleRoles": ["USER", "ADMIN"],
-      "createdAt": "2024-01-15 08:30"
+      "createdAt": "2024-01-15 08:30",
+      "image1": "https://example.com/image1.jpg",
+      "image2": "https://example.com/image2.jpg"
     }
   ]
 }
@@ -1457,6 +1699,8 @@ GET /api/activities?eventId=1&page=1&pageSize=10&needsTotal=true
 | createdAt | string | Activity creation timestamp (format: yyyy-MM-dd HH:mm) |
 | totalParticipants | integer | **[Enhanced]** Total number of users signed up (only when needsTotal=true) |
 | totalTime | integer | **[Enhanced]** Total time in minutes (totalParticipants × duration, only when needsTotal=true) |
+| image1 | string | Activity image 1 URL or path (max 2000 characters) |
+| image2 | string | Activity image 2 URL or path (max 2000 characters) |
 
 #### Business Rules
 - The `totalParticipants` field counts only users with "SIGNED_UP" state in the user_activity table
@@ -1501,7 +1745,9 @@ GET /api/activities/1
     "status": "ACTIVE",
     "visibleLocations": ["New York", "Brooklyn"],
     "visibleRoles": ["USER", "ADMIN"],
-    "createdAt": "2024-01-15 08:30"
+    "createdAt": "2024-01-15 08:30",
+    "image1": "https://example.com/image1.jpg",
+    "image2": "https://example.com/image2.jpg"
   }
 }
 ```
@@ -1522,6 +1768,8 @@ GET /api/activities/1
 | visibleLocations | array | Locations where this activity is visible |
 | visibleRoles | array | User roles that can see this activity |
 | createdAt | string | Activity creation timestamp (format: yyyy-MM-dd HH:mm) |
+| image1 | string | Activity image 1 URL or path (max 2000 characters) |
+| image2 | string | Activity image 2 URL or path (max 2000 characters) |
 
 #### Error Responses
 
@@ -1556,7 +1804,9 @@ Create a new activity within an event.
   "endTime": "2024-01-15 11:00",
   "status": "not_registered",
   "visibleLocations": ["New York", "Brooklyn"],
-  "visibleRoles": ["USER", "ADMIN"]
+  "visibleRoles": ["USER", "ADMIN"],
+  "image1": "https://example.com/image1.jpg",
+  "image2": "https://example.com/image2.jpg"
 }
 ```
 
@@ -1588,6 +1838,8 @@ Create a new activity within an event.
 | status | string | Yes | Activity status. Valid values: "not_registered", "registering", "full", "ended" |
 | visibleLocations | array | Yes | Locations where this activity is visible (at least 1 required) |
 | visibleRoles | array | Yes | User roles that can see this activity (at least 1 required) |
+| image1 | string | No | Activity image 1 URL or path (max 2000 characters) |
+| image2 | string | No | Activity image 2 URL or path (max 2000 characters) |
 
 **Note**: The `createdAt` field is automatically set to the current system time when creating an activity and cannot be specified in the request.
 
@@ -1640,7 +1892,9 @@ Update an existing activity's information.
   "endTime": "2024-01-15 12:30",
   "status": "registering",
   "visibleLocations": ["New York", "Brooklyn", "Queens"],
-  "visibleRoles": ["USER", "ADMIN"]
+  "visibleRoles": ["USER", "ADMIN"],
+  "image1": "https://example.com/updated-image1.jpg",
+  "image2": "https://example.com/updated-image2.jpg"
 }
 ```
 
@@ -1667,6 +1921,8 @@ Update an existing activity's information.
 | status | string | No | Activity status. Valid values: "not_registered", "registering", "full", "ended" |
 | visibleLocations | array | No | Locations where this activity is visible (at least 1 required if provided) |
 | visibleRoles | array | No | User roles that can see this activity (at least 1 required if provided) |
+| image1 | string | No | Activity image 1 URL or path (max 2000 characters) |
+| image2 | string | No | Activity image 2 URL or path (max 2000 characters) |
 
 #### Error Responses
 

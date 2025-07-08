@@ -43,4 +43,7 @@ public class EventCreateRequest {
 
     @NotNull
     private List<String> visibleRoles;
+
+    @Size(max = 2000, message = "Detail image length cannot exceed 2000 characters")
+    private String detailImage;
 } 
