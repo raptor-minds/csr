@@ -2342,3 +2342,44 @@ GET /api/templates?name=环保
 - 如果提供name参数，返回名称包含该关键词的模板
 - detail字段为JSON字符串格式，包含模板的详细配置信息
 - 模板可用于快速创建标准化的活动
+
+---
+
+## 反馈相关接口
+
+### 创建反馈
+- **URL**: `POST /api/feedback`
+- **请求头**：
+  - `Authorization: Bearer {accessToken}`
+- **请求体**：
+```json
+{
+  "feedbackDetail": "这个系统很好用！"
+}
+```
+- **说明**：userId 从登录token自动获取，前端无需传递。
+- **响应示例**：
+```json
+{
+  "feedbackDetail": "这个系统很好用！",
+  "message": "反馈提交成功"
+}
+```
+
+### 获取反馈列表
+- **URL**: `GET /api/feedbacks`
+- **响应示例**：
+```json
+[
+  {
+    "id": 1,
+    "userId": 1,
+    "feedbackDetail": "这个系统很好用！"
+  },
+  {
+    "id": 2,
+    "userId": 2,
+    "feedbackDetail": "希望增加导出功能"
+  }
+]
+```

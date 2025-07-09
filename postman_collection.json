@@ -73,6 +73,44 @@
         }
       },
       "response": []
+    },
+    {
+      "name": "创建反馈",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"feedbackDetail\": \"这个系统很好用！\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/feedback",
+          "host": [ "{{baseUrl}}" ],
+          "path": [ "api", "feedback" ]
+        }
+      },
+      "response": [
+        {
+          "code": 200,
+          "body": "{\n  \"feedbackDetail\": \"这个系统很好用！\",\n  \"message\": \"反馈提交成功\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "获取反馈列表",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/feedbacks",
+          "host": [ "{{baseUrl}}" ],
+          "path": [ "api", "feedbacks" ]
+        }
+      },
+      "response": []
     }
   ]
 }

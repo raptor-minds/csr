@@ -20,6 +20,16 @@ public class UserActivityDto {
     private Integer id;
     
     /**
+     * User ID
+     */
+    private Integer userId;
+    
+    /**
+     * Activity ID
+     */
+    private Integer activityId;
+    
+    /**
      * Activity name
      */
     private String name;
@@ -38,4 +48,29 @@ public class UserActivityDto {
      * User activity state (SIGNED_UP, WITHDRAWN)
      */
     private String state;
+    
+    /**
+     * Endorsed by
+     */
+    private Integer endorsedBy;
+    
+    /**
+     * Endorsed at
+     */
+    private java.util.Date endorsedAt;
+    
+    /**
+     * Created at
+     */
+    private java.util.Date createdAt;
+    
+    /**
+     * Chain ID
+     */
+    private String chainId;
+    
+    /**
+     * Detail
+     */
+    private String detail;
 } 

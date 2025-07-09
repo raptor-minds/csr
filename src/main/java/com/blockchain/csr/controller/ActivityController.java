@@ -14,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.blockchain.csr.model.entity.Activity;
 import com.blockchain.csr.model.dto.BaseResponse;
+import com.blockchain.csr.model.dto.UserActivityDto;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,14 +37,20 @@ public class ActivityController {
 
     // 获取活动列表
     @GetMapping
-    public ResponseEntity<BaseResponse<List<ActivityResponseDto>>> getActivities(
+    public ResponseEntity<BaseResponse<List<?>>> getActivities(
             @RequestParam(required = false) Integer eventId,
+            @RequestParam(required = false) Integer userId,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer pageSize,
             @RequestParam(required = false, defaultValue = "false") Boolean needsTotal) {
-        // 实现逻辑：调用activityService获取活动列表
-        List<Activity> activities = activityService.getActivities(eventId, page, pageSize);
-        
+        List<Activity> activities;
+        if(userId != null) {
+            List<UserActivityDto> details = activityService.getUserActivitiesByEvent(userId, eventId, page, pageSize);
+            return ResponseEntity.ok(BaseResponse.success(details));
+        }else {
+            activities = activityService.getActivities(eventId, page, pageSize);
+        }
+
         List<ActivityResponseDto> dtos;
         if (needsTotal != null && needsTotal) {
             // 如果需要总计信息，计算每个活动的总参与人数和总时间
@@ -60,7 +67,6 @@ public class ActivityController {
                 .map(activityMapper::toResponseDto)
                 .collect(Collectors.toList());
         }
-        
         return ResponseEntity.ok(BaseResponse.success(dtos));
     }
 
@@ -160,27 +166,5 @@ public class ActivityController {
             return ResponseEntity.status(500).body(BaseResponse.internalError("服务器内部错误"));
         }
     }
-
-    // 获取用户在指定事件下参与的活动
-    @GetMapping(params = {"userId", "eventId"})
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-    public ResponseEntity<BaseResponse<List<ActivityResponseDto>>> getUserActivitiesByEvent(
-            @RequestParam Integer userId,
-            @RequestParam Integer eventId) {
-        
-        // 权限检查：如果不是admin且不是当前用户，直接返回错误
-        Integer currentUserId = securityUtils.getCurrentUserId();
-        boolean canReview = SecurityUtils.isAdmin() ||
-                (currentUserId != null && currentUserId.equals(userId));
-        if (!canReview) {
-            return ResponseEntity.status(403).body(BaseResponse.forbidden("您只能查看自己的活动信息"));
-        }
-        
-        // 权限通过后，才执行数据库查询
-        List<Activity> activities = activityService.getUserActivitiesByEvent(userId, eventId);
-        List<ActivityResponseDto> dtos = activities.stream()
-            .map(activityMapper::toResponseDto)
-            .collect(Collectors.toList());
-        return ResponseEntity.ok(BaseResponse.success(dtos));
-    }
+    
 }

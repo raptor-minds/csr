@@ -177,22 +177,7 @@ public class UserController {
         }
     }
 
-    @GetMapping("/users/{id}/activities")
-    @PreAuthorize("hasRole('ADMIN') or (hasRole('USER') and @securityUtils.isCurrentUser(#id))")
-    public ResponseEntity<BaseResponse<List<UserActivityDto>>> getUserActivities(@PathVariable Integer id) {
-        try {
-            log.info("Requesting activities for user ID: {}", id);
-            
-            List<UserActivityDto> activities = userActivityService.getUserActivities(id);
-            
-            return ResponseEntity.ok(BaseResponse.success(activities));
-        } catch (Exception e) {
-            log.error("Error getting activities for user ID {}: {}", id, e.getMessage(), e);
-            return ResponseEntity.status(500).body(BaseResponse.internalError("Failed to retrieve user activities"));
-        }
-    }
-
-    @PostMapping("/users/activity-detail")
+ 	@PostMapping("/users/activity-detail")
     @PreAuthorize("hasRole('ADMIN') or (hasRole('USER') and @securityUtils.isCurrentUser(#request.userId))")
     public ResponseEntity<BaseResponse<Object>> updateActivityDetail(@Valid @RequestBody ActivityDetailRequest request) {
         try {
@@ -211,18 +196,4 @@ public class UserController {
         }
     }
 
-    @GetMapping("/users/{userId}/activity-details")
-    @PreAuthorize("hasRole('ADMIN') or (hasRole('USER') and @securityUtils.isCurrentUser(#userId))")
-    public ResponseEntity<BaseResponse<UserActivityDetailsResponse>> getUserActivityDetails(@PathVariable Integer userId) {
-        try {
-            log.info("Requesting activity details for user ID: {}", userId);
-            
-            UserActivityDetailsResponse response = userActivityService.getUserActivityDetails(userId);
-            
-            return ResponseEntity.ok(BaseResponse.success(response));
-        } catch (Exception e) {
-            log.error("Error getting activity details for user ID {}: {}", userId, e.getMessage(), e);
-            return ResponseEntity.status(500).body(BaseResponse.internalError("Failed to retrieve user activity details"));
-        }
-    }
 } 
