@@ -12,10 +12,8 @@ import java.math.BigDecimal;
 /**
  * Donation detail DTO for activity details
  * Used for template_id = 2
- * Extends BasicDetailDTO with amount field
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class DonationDetailDTO extends BasicDetailDTO {
@@ -23,8 +21,8 @@ public class DonationDetailDTO extends BasicDetailDTO {
     @NotNull(message = "Amount is required")
     @DecimalMin(value = "0.01", message = "Amount must be greater than 0")
     private BigDecimal amount;
-    
-    public DonationDetailDTO(String comment, BigDecimal amount) {
+
+    public DonationDetailDTO(String comment, @NotNull BigDecimal amount) {
         super(comment);
         this.amount = amount;
     }

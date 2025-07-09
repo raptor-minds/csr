@@ -32,4 +32,10 @@ public class ActivityResponseDto {
     // Image fields
     private String image1;
     private String image2;
+    
+    // User activity fields (when userId is provided)
+    private String userActivityState;
+    private java.util.Date userActivityCreatedAt;
+    private String userActivityChainId;
+    private BasicDetailDTO userActivityDetail;
 }

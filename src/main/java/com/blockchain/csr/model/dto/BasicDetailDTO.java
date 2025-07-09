@@ -2,9 +2,10 @@ package com.blockchain.csr.model.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import jakarta.validation.constraints.NotBlank;
+import java.io.Serializable;
 
 /**
  * Basic detail DTO for activity details
@@ -13,8 +14,7 @@ import jakarta.validation.constraints.NotBlank;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class BasicDetailDTO {
+public class BasicDetailDTO implements Serializable {
     
-    @NotBlank(message = "Comment is required")
     private String comment;
 } 

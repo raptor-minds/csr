@@ -10,14 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.blockchain.csr.model.entity.Activity;
 import com.blockchain.csr.model.dto.BaseResponse;
-import com.blockchain.csr.model.dto.UserActivityDto;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author zhangrucheng on 2025/5/19
@@ -37,37 +34,16 @@ public class ActivityController {
 
     // 获取活动列表
     @GetMapping
-    public ResponseEntity<BaseResponse<List<?>>> getActivities(
+    public ResponseEntity<BaseResponse<List<ActivityResponseDto>>> getActivities(
             @RequestParam(required = false) Integer eventId,
             @RequestParam(required = false) Integer userId,
             @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer pageSize,
-            @RequestParam(required = false, defaultValue = "false") Boolean needsTotal) {
-        List<Activity> activities;
-        if(userId != null) {
-            List<UserActivityDto> details = activityService.getUserActivitiesByEvent(userId, eventId, page, pageSize);
-            return ResponseEntity.ok(BaseResponse.success(details));
-        }else {
-            activities = activityService.getActivities(eventId, page, pageSize);
-        }
-
-        List<ActivityResponseDto> dtos;
-        if (needsTotal != null && needsTotal) {
-            // 如果需要总计信息，计算每个活动的总参与人数和总时间
-            dtos = activities.stream()
-                .map(activity -> {
-                    Integer totalParticipants = activityService.getTotalParticipants(activity.getId());
-                    Integer totalTime = activityService.calculateTotalTime(activity, totalParticipants);
-                    return activityMapper.toResponseDtoWithEnhancedFields(activity, totalParticipants, totalTime);
-                })
-                .collect(Collectors.toList());
-        } else {
-            // 普通模式，不计算总计信息
-            dtos = activities.stream()
-                .map(activityMapper::toResponseDto)
-                .collect(Collectors.toList());
-        }
-        return ResponseEntity.ok(BaseResponse.success(dtos));
+            @RequestParam(required = false) Integer pageSize) {
+        
+        List<ActivityResponseDto> activities = activityService.getActivitiesWithUserDetails(
+                eventId, userId, page, pageSize);
+        
+        return ResponseEntity.ok(BaseResponse.success(activities));
     }
 
     // 获取活动详情

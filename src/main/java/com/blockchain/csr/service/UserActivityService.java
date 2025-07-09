@@ -1,5 +1,6 @@
 package com.blockchain.csr.service;
 
+import com.blockchain.csr.model.dto.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,20 +11,14 @@ import com.blockchain.csr.model.entity.UserActivity;
 import com.blockchain.csr.model.entity.Activity;
 import com.blockchain.csr.repository.UserActivityRepository;
 import com.blockchain.csr.repository.ActivityRepository;
-import com.blockchain.csr.model.dto.UserActivityDto;
-import com.blockchain.csr.model.dto.ActivityDetailRequest;
-import com.blockchain.csr.model.dto.BasicDetailDTO;
-import com.blockchain.csr.model.dto.DonationDetailDTO;
-import com.blockchain.csr.model.dto.ActivityDetailResponseDTO;
-import com.blockchain.csr.model.dto.UserActivityDetailsResponse;
 import com.blockchain.csr.model.enums.UserActivityState;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Optional;
-import java.math.BigDecimal;
 import java.util.Map;
 
 /**
@@ -37,6 +32,7 @@ public class UserActivityService{
 
     private final UserActivityRepository userActivityRepository;
     private final ActivityRepository activityRepository;
+    private final ActivityDetailFactory activityDetailFactory;
     private final ObjectMapper objectMapper;
 
     public int deleteByPrimaryKey(Integer id) {
@@ -102,14 +98,12 @@ public class UserActivityService{
                     request.getUserId(), request.getActivityId());
             
             // 1. Find the user activity record
-            List<UserActivity> userActivities = userActivityRepository
+            UserActivity userActivity = userActivityRepository
                     .findByUserIdAndActivityId(request.getUserId(), request.getActivityId());
             
-            if (userActivities.isEmpty()) {
+            if (ObjectUtils.isEmpty(userActivity)) {
                 throw new IllegalArgumentException("User has not signed up for this activity");
             }
-            
-            UserActivity userActivity = userActivities.get(0);
             
             // 2. Check if user is signed up (state = "SIGNED_UP")
             if (!UserActivityState.SIGNED_UP.getValue().equals(userActivity.getState())) {
@@ -129,11 +123,11 @@ public class UserActivityService{
                 throw new IllegalArgumentException("Activity has no template assigned");
             }
             
-            // 4. Validate and convert detail based on template_id
-            String detailJson = validateAndConvertDetail(request.getDetail(), templateId);
+            // 4. Create detail using factory
+            BasicDetailDTO detail = activityDetailFactory.createDetail(templateId, request.getDetail());
             
             // 5. Update the user activity record
-            userActivity.setDetail(detailJson);
+            userActivity.setDetail(detail);
             userActivityRepository.save(userActivity);
             
             log.info("Successfully updated activity detail for user ID: {}, activity ID: {}", 
@@ -143,63 +137,6 @@ public class UserActivityService{
             log.error("Error updating activity detail for user ID {}, activity ID {}: {}", 
                     request.getUserId(), request.getActivityId(), e.getMessage(), e);
             throw e;
-        }
-    }
-    
-    /**
-     * Validate and convert detail based on template_id
-     *
-     * @param detail the detail map from request
-     * @param templateId the template ID
-     * @return JSON string representation of the detail
-     * @throws IllegalArgumentException if validation fails
-     */
-    private String validateAndConvertDetail(java.util.Map<String, Object> detail, Integer templateId) {
-        try {
-            if (templateId == 1) {
-                // BasicDetailDTO - only comment required
-                String comment = (String) detail.get("comment");
-                if (comment == null || comment.trim().isEmpty()) {
-                    throw new IllegalArgumentException("Comment is required");
-                }
-                
-                BasicDetailDTO basicDetail = new BasicDetailDTO(comment);
-                return objectMapper.writeValueAsString(basicDetail);
-                
-            } else if (templateId == 2) {
-                // DonationDetailDTO - comment and amount required
-                String comment = (String) detail.get("comment");
-                if (comment == null || comment.trim().isEmpty()) {
-                    throw new IllegalArgumentException("Comment is required");
-                }
-                
-                Object amountObj = detail.get("amount");
-                if (amountObj == null) {
-                    throw new IllegalArgumentException("Amount is required");
-                }
-                
-                BigDecimal amount;
-                if (amountObj instanceof String) {
-                    amount = new BigDecimal((String) amountObj);
-                } else if (amountObj instanceof Number) {
-                    amount = BigDecimal.valueOf(((Number) amountObj).doubleValue());
-                } else {
-                    throw new IllegalArgumentException("Invalid amount format");
-                }
-                
-                if (amount.compareTo(BigDecimal.valueOf(0.01)) < 0) {
-                    throw new IllegalArgumentException("Amount must be greater than 0");
-                }
-                
-                DonationDetailDTO donationDetail = new DonationDetailDTO(comment, amount);
-                return objectMapper.writeValueAsString(donationDetail);
-                
-            } else {
-                throw new IllegalArgumentException("Unsupported template ID: " + templateId);
-            }
-            
-        } catch (JsonProcessingException e) {
-            throw new IllegalArgumentException("Failed to convert detail to JSON: " + e.getMessage());
         }
     }
     
@@ -217,7 +154,7 @@ public class UserActivityService{
             List<UserActivity> userActivities = userActivityRepository.findByUserId(userId);
             
             List<ActivityDetailResponseDTO> activityDetails = userActivities.stream()
-                    .filter(ua -> ua.getDetail() != null && !ua.getDetail().trim().isEmpty())
+                    .filter(ua -> ua.getDetail() != null)
                     .map(this::convertToActivityDetailResponse)
                     .filter(detail -> detail != null)
                     .collect(Collectors.toList());
@@ -248,14 +185,16 @@ public class UserActivityService{
             Activity activity = activityOpt.get();
             Integer templateId = activity.getTemplateId();
             
-            // Parse the detail JSON
+            BasicDetailDTO detail = activityDetailFactory.createDetail(templateId, userActivity.getDetail());
+            
+            // Convert to map for response
             Map<String, Object> detailMap = null;
-            if (userActivity.getDetail() != null && !userActivity.getDetail().trim().isEmpty()) {
+            if (detail != null) {
                 try {
-                    detailMap = objectMapper.readValue(userActivity.getDetail(), Map.class);
+                    String detailJson = objectMapper.writeValueAsString(detail);
+                    detailMap = objectMapper.readValue(detailJson, Map.class);
                 } catch (JsonProcessingException e) {
-                    log.warn("Failed to parse detail JSON for user activity {}: {}", userActivity.getId(), e.getMessage());
-                    detailMap = new java.util.HashMap<>();
+                    log.warn("Failed to convert detail to map for user activity {}: {}", userActivity.getId(), e.getMessage());
                 }
             }
             

@@ -70,7 +70,7 @@ public class UserActivityDto {
     private String chainId;
     
     /**
-     * Detail
+     * Activity detail (polymorphic based on template)
      */
-    private String detail;
+    private BasicDetailDTO detail;
 } 

@@ -1,13 +1,16 @@
 package com.blockchain.csr.service;
 
+import com.blockchain.csr.model.dto.BasicDetailDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import com.blockchain.csr.model.entity.Event;
 import com.blockchain.csr.model.entity.Activity;
 import com.blockchain.csr.model.entity.UserActivity;
+import com.blockchain.csr.model.dto.DonationDetailDTO;
 import com.blockchain.csr.repository.EventRepository;
 import com.blockchain.csr.repository.ActivityRepository;
 import com.blockchain.csr.repository.UserActivityRepository;
@@ -24,12 +27,14 @@ import java.math.BigDecimal;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class EventService{
 
     private final EventRepository eventRepository;
     private final ActivityRepository activityRepository;
     private final UserActivityRepository userActivityRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ActivityDetailFactory activityDetailFactory;
 
     
     public int deleteByPrimaryKey(Integer id) {
@@ -122,28 +127,20 @@ public class EventService{
         
         // Process all user activities to sum up the amounts
         for (UserActivity userActivity : userActivities) {
-            if (userActivity.getDetail() != null) {
-                try {
-                    // Parse JSON detail to extract amount
-                    Map<String, Object> detail = objectMapper.readValue(userActivity.getDetail(), Map.class);
-                    Object amountObj = detail.get("amount");
+            try {
+                BasicDetailDTO detail = activityDetailFactory.createDetail(2, userActivity.getDetail());
+                if (detail != null && detail instanceof DonationDetailDTO) {
+                    DonationDetailDTO donationDetail = (DonationDetailDTO) detail;
+                    BigDecimal amount = donationDetail.getAmount();
                     
-                    if (amountObj != null) {
-                        BigDecimal amount;
-                        if (amountObj instanceof Number) {
-                            amount = BigDecimal.valueOf(((Number) amountObj).doubleValue());
-                        } else if (amountObj instanceof String) {
-                            amount = new BigDecimal((String) amountObj);
-                        } else {
-                            continue; // Skip invalid amount formats
-                        }
-                        
+                    if (amount != null) {
                         totalAmount = totalAmount.add(amount);
                     }
-                } catch (Exception e) {
-                    // Skip invalid JSON or amount parsing errors
-                    continue;
                 }
+            } catch (Exception e) {
+                // Skip invalid detail conversion errors and continue processing
+                log.warn("Failed to process donation detail for user activity {}: {}", userActivity.getId(), e.getMessage());
+                continue;
             }
         }
         
