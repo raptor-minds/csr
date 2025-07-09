@@ -1818,7 +1818,6 @@ Create a new activity within an event.
   "description": "Help clean up the local park",
   "startTime": "2024-01-15 09:00",
   "endTime": "2024-01-15 11:00",
-  "status": "not_registered",
   "visibleLocations": ["New York", "Brooklyn"],
   "visibleRoles": ["USER", "ADMIN"],
   "image1": "https://example.com/image1.jpg",
@@ -1851,7 +1850,7 @@ Create a new activity within an event.
 | description | string | Yes | Activity description (max 1000 characters) |
 | startTime | string | Yes | Activity start time (format: yyyy-MM-dd HH:mm) |
 | endTime | string | Yes | Activity end time (format: yyyy-MM-dd HH:mm) |
-| status | string | Yes | Activity status. Valid values: "not_registered", "registering", "full", "ended" |
+| status | string | No | Activity status (read-only). Value is automatically calculated based on current time vs start/end times. Not included in request body. |
 | visibleLocations | array | Yes | Locations where this activity is visible (at least 1 required) |
 | visibleRoles | array | Yes | User roles that can see this activity (at least 1 required) |
 | image1 | string | No | Activity image 1 URL or path (max 2000 characters) |
@@ -1863,6 +1862,13 @@ Create a new activity within an event.
 
 **DateTime Format**: All date and time fields use the format `yyyy-MM-dd HH:mm` (e.g., "2024-01-15 09:00"). Do not include seconds or use ISO 8601 format.
 
+**Time Validation**: The `endTime` must be after the `startTime`. Activities with invalid time ranges will be rejected with a validation error.
+
+**Status Calculation**: The `status` field is automatically calculated based on the current time compared to the activity's start and end times:
+- `NOT_STARTED`: Current time is before the start time
+- `IN_PROGRESS`: Current time is between start and end times
+- `FINISHED`: Current time is after the end time
+
 #### Error Responses
 
 ##### Validation Error (400)
@@ -1870,6 +1876,15 @@ Create a new activity within an event.
 {
   "code": 400,
   "message": "名称不能为空",
+  "data": null
+}
+```
+
+##### Time Validation Error (400)
+```json
+{
+  "code": 400,
+  "message": "结束时间必须晚于开始时间",
   "data": null
 }
 ```
@@ -1906,7 +1921,6 @@ Update an existing activity's information.
   "description": "Updated description for the park cleanup",
   "startTime": "2024-01-15 10:00",
   "endTime": "2024-01-15 12:30",
-  "status": "registering",
   "visibleLocations": ["New York", "Brooklyn", "Queens"],
   "visibleRoles": ["USER", "ADMIN"],
   "image1": "https://example.com/updated-image1.jpg",
@@ -1934,7 +1948,7 @@ Update an existing activity's information.
 | description | string | No | Activity description (max 1000 characters) |
 | startTime | string | No | Activity start time (format: yyyy-MM-dd HH:mm) |
 | endTime | string | No | Activity end time (format: yyyy-MM-dd HH:mm) |
-| status | string | No | Activity status. Valid values: "not_registered", "registering", "full", "ended" |
+| status | string | No | Activity status (read-only). Value is automatically calculated based on current time vs start/end times. Cannot be modified through API. |
 | visibleLocations | array | No | Locations where this activity is visible (at least 1 required if provided) |
 | visibleRoles | array | No | User roles that can see this activity (at least 1 required if provided) |
 | image1 | string | No | Activity image 1 URL or path (max 2000 characters) |
