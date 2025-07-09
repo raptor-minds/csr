@@ -1294,17 +1294,16 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 |-----------|------|----------|-------------|
 | page | number | No | Page number (default: 1) |
 | pageSize | number | No | Page size (default: 10) |
-| needsTotal | boolean | No | Include total participants and total time (default: false) |
 | eventName | string | No | Filter events by name (case-insensitive partial match) |
 
 #### Request Examples
 ```
-GET /api/events?page=1&pageSize=10&needsTotal=true
+GET /api/events?page=1&pageSize=10
 GET /api/events?eventName=tech&page=1&pageSize=10
-GET /api/events?eventName=Annual&needsTotal=true
+GET /api/events?eventName=Annual&page=1&pageSize=10
 ```
 
-#### Response Example (with needsTotal=true)
+#### Response Example
 ```json
 {
   "code": 200,
@@ -1356,42 +1355,6 @@ GET /api/events?eventName=Annual&needsTotal=true
 }
 ```
 
-#### Response Example (with needsTotal=false or omitted)
-```json
-{
-  "code": 200,
-  "message": "Success",
-  "data": {
-    "data": [
-      {
-        "id": 1,
-        "name": "Annual Tech Conference",
-        "startTime": "2024-03-20 09:00",
-        "endTime": "2024-03-20 18:00",
-        "isDisplay": true,
-        "bgImage": "https://example.com/bg.jpg",
-        "createdAt": "2024-03-15 14:30",
-        "activities": [
-          {
-            "id": 1,
-            "name": "Opening Speech",
-            "description": "CEO opening remarks",
-            "startTime": "2024-03-20 09:00",
-            "endTime": "2024-03-20 09:30",
-            "status": "ACTIVE",
-            "createdAt": "2024-03-15 14:45"
-          }
-        ],
-        "detailImage": "https://example.com/event-detail.jpg"
-      }
-    ],
-    "total": 5,
-    "page": 1,
-    "pageSize": 10
-  }
-}
-```
-
 #### Field Descriptions
 | Field | Type | Description |
 |-------|------|-------------|
@@ -1403,9 +1366,9 @@ GET /api/events?eventName=Annual&needsTotal=true
 | bgImage | string | Background image URL |
 | createdAt | string | Event creation timestamp (yyyy-MM-dd HH:mm format) |
 | activities | array | List of activities within the event |
-| totalParticipants | integer | **[Enhanced]** Total unique participants across all activities (only when needsTotal=true) |
-| totalTime | integer | **[Enhanced]** Sum of total time from all activities in minutes (only when needsTotal=true) |
-| totalAmount | decimal | **[Enhanced]** Total donation amount from all activities with templateId 2 (only when needsTotal=true) |
+| totalParticipants | integer | **[Enhanced]** Total unique participants across all activities |
+| totalTime | integer | **[Enhanced]** Sum of total time from all activities in minutes |
+| totalAmount | decimal | **[Enhanced]** Total donation amount from all activities with templateId 2 |
 | detailImage | string | Event detail image URL or path (max 2000 characters) |
 
 #### Activity Field Descriptions
@@ -1418,8 +1381,8 @@ GET /api/events?eventName=Annual&needsTotal=true
 | endTime | string | Activity end time (yyyy-MM-dd HH:mm format) |
 | status | string | Activity status |
 | createdAt | string | Activity creation timestamp (yyyy-MM-dd HH:mm format) |
-| totalParticipants | integer | **[Enhanced]** Total number of users signed up for this activity (only when needsTotal=true) |
-| totalTime | integer | **[Enhanced]** Total time for this activity in minutes (totalParticipants × duration, only when needsTotal=true) |
+| totalParticipants | integer | **[Enhanced]** Total number of users signed up for this activity |
+| totalTime | integer | **[Enhanced]** Total time for this activity in minutes (totalParticipants × duration) |
 
 #### Business Rules
 - **Event Filtering**: When `eventName` is provided, only events with names containing the search term (case-insensitive) are returned
@@ -1429,8 +1392,7 @@ GET /api/events?eventName=Annual&needsTotal=true
 - **Event Level**: The `totalTime` field is the sum of (participants × duration) for each activity in the event
 - **Activity Level**: Each activity's `totalTime` field is calculated as (activity participants × activity duration)
 - **Event Level**: The `totalAmount` field is the sum of donation amounts from all activities with templateId 2 (donation activities) where users are signed up
-- Enhanced fields (`totalParticipants`, `totalTime`, and `totalAmount`) are only included for both events and activities when `needsTotal=true`
-- If `needsTotal=false` or omitted, the response will not include the enhanced fields for better performance
+- Enhanced fields (`totalParticipants`, `totalTime`, and `totalAmount`) are always included in the response for both events and activities
 - Pagination is 1-based (page=1 is the first page)
 - Pagination works correctly with event name filtering - `total` reflects the count of filtered results
 
