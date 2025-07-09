@@ -7,11 +7,17 @@ import java.time.LocalDateTime;
 import java.util.List;
 import jakarta.validation.constraints.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.Constraint;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
+import jakarta.validation.Payload;
+import java.lang.annotation.*;
 
 /**
  * 用于活动请求的数据传输对象
  */
 @Data
+@ValidTimeRange(groups = {ActivityRequestDto.CreateGroup.class, ActivityRequestDto.UpdateGroup.class})
 public class ActivityRequestDto {
     public interface CreateGroup {}
     public interface UpdateGroup {}
@@ -45,10 +51,6 @@ public class ActivityRequestDto {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "GMT+8")
     private LocalDateTime endTime;
 
-    @NotBlank(message = "状态不能为空", groups = {CreateGroup.class})
-    @Pattern(regexp = "not_registered|registering|full|ended", message = "无效的状态值", groups = {CreateGroup.class, UpdateGroup.class})
-    private String status;
-
     @NotNull(message = "可见地区必须提供", groups = {CreateGroup.class})
     @Size(min = 1, message = "至少选择一个可见地区", groups = {CreateGroup.class, UpdateGroup.class})
     private List<String> visibleLocations;
@@ -62,4 +64,30 @@ public class ActivityRequestDto {
 
     @Size(max = 2000, message = "图片2长度不能超过2000个字符", groups = {CreateGroup.class, UpdateGroup.class})
     private String image2;
+}
+
+// Custom validation annotation for time range
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Constraint(validatedBy = ValidTimeRange.TimeRangeValidator.class)
+@Documented
+@interface ValidTimeRange {
+    String message() default "结束时间必须晚于开始时间";
+    Class<?>[] groups() default {};
+    Class<? extends Payload>[] payload() default {};
+    
+    class TimeRangeValidator implements ConstraintValidator<ValidTimeRange, ActivityRequestDto> {
+        @Override
+        public void initialize(ValidTimeRange constraintAnnotation) {
+        }
+        
+        @Override
+        public boolean isValid(ActivityRequestDto value, ConstraintValidatorContext context) {
+            if (value == null || value.getStartTime() == null || value.getEndTime() == null) {
+                return true; // Let @NotNull handle null cases
+            }
+            
+            return value.getEndTime().isAfter(value.getStartTime());
+        }
+    }
 }
