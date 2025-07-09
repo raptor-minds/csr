@@ -3,6 +3,13 @@
 ## Overview
 This document describes the REST API endpoints for the CSR (Corporate Social Responsibility) system. The API uses JWT-based authentication with role-based access control.
 
+### Activity Detail System
+The system implements a flexible JSON field handling mechanism for user activity details:
+- **Template-based Structure**: Activity details have different structures based on the activity's template ID
+- **Polymorphic DTOs**: Uses `BasicDetailDTO` (Template ID 1) and `DonationDetailDTO` (Template ID 2) internally
+- **Type-safe Storage**: JSON fields are stored in the database using a custom converter for type safety
+- **Flexible API**: Accepts and returns `Map<String, Object>` for detail fields while maintaining internal type safety
+
 ## Base Information
 - **Base URL**: `http://localhost:8080`
 - **Authentication**: Bearer Token (JWT)
@@ -970,7 +977,9 @@ The detail object structure depends on the activity's template:
   - Template ID 1: Basic format with only comment field
   - Template ID 2: Donation format with comment and amount fields
 - The amount field for donation activities must be a positive decimal value greater than 0.01
-- The template_id is automatically set in the user_activity record based on the activity's template
+- The template_id is automatically retrieved from the activity table, not stored directly in user_activity
+- The detail field is stored as JSON in the database using a custom converter for type safety
+- The system uses polymorphic DTOs (BasicDetailDTO and DonationDetailDTO) internally to handle different detail structures
 
 ---
 
@@ -1071,6 +1080,8 @@ The details object structure depends on the activity's template:
 - Only activities with details are returned (activities without details are filtered out)
 - The template_id is retrieved from the activity table, not stored directly in user_activity
 - If an activity is deleted but the user_activity record remains, that entry will be filtered out
+- The detail field is converted from internal DTO format to Map<String, Object> for JSON response
+- The system uses ActivityDetailFactory to create appropriate detail objects based on template ID
 
 ---
 
@@ -1273,7 +1284,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ---
 
-## Event Management APIs
+## Event Management APIsE
 
 ### 1. Get Event List
 **Endpoint**: `GET /api/events`
@@ -1616,13 +1627,15 @@ Retrieve a list of activities with optional filtering and enhanced information.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | eventId | integer | No | Filter activities by event ID |
+| userId | integer | No | Filter activities to show only those the user has signed up for (also includes user activity details) |
 | page | integer | No | Page number for pagination (1-based) |
 | pageSize | integer | No | Number of items per page (default: 10) |
 | needsTotal | boolean | No | Include total participants and total time (default: false) |
 
-#### Request Example
+#### Request Examples
 ```
 GET /api/activities?eventId=1&page=1&pageSize=10&needsTotal=true
+GET /api/activities?userId=1&eventId=1&page=1&pageSize=10&needsTotal=true
 ```
 
 #### Response Example (with needsTotal=true)
@@ -1681,6 +1694,39 @@ GET /api/activities?eventId=1&page=1&pageSize=10&needsTotal=true
 }
 ```
 
+#### Response Example (with userId parameter)
+```json
+{
+  "code": 200,
+  "message": "Success",
+  "data": [
+    {
+      "id": 1,
+      "name": "Community Cleanup",
+      "eventId": 1,
+      "templateId": 1,
+      "duration": 120,
+      "icon": "cleanup-icon",
+      "description": "Help clean up the local park",
+      "startTime": "2024-01-15 09:00",
+      "endTime": "2024-01-15 11:00",
+      "status": "ACTIVE",
+      "visibleLocations": ["New York", "Brooklyn"],
+      "visibleRoles": ["USER", "ADMIN"],
+      "createdAt": "2024-01-15 08:30",
+      "image1": "https://example.com/image1.jpg",
+      "image2": "https://example.com/image2.jpg",
+      "userActivityState": "SIGNED_UP",
+      "userActivityCreatedAt": "2024-01-15 10:00:00",
+      "userActivityChainId": "0x123456789abcdef",
+      "userActivityDetail": {
+        "comment": "Looking forward to helping clean up the park!"
+      }
+    }
+  ]
+}
+```
+
 #### Field Descriptions
 | Field | Type | Description |
 |-------|------|-------------|
@@ -1701,12 +1747,20 @@ GET /api/activities?eventId=1&page=1&pageSize=10&needsTotal=true
 | totalTime | integer | **[Enhanced]** Total time in minutes (totalParticipants × duration, only when needsTotal=true) |
 | image1 | string | Activity image 1 URL or path (max 2000 characters) |
 | image2 | string | Activity image 2 URL or path (max 2000 characters) |
+| userActivityState | string | **[User Activity]** User's participation state: "SIGNED_UP" or "WITHDRAWN" (only when userId is provided) |
+| userActivityCreatedAt | string | **[User Activity]** When the user signed up for the activity (only when userId is provided) |
+| userActivityChainId | string | **[User Activity]** Blockchain chain ID for the user's participation (only when userId is provided) |
+| userActivityDetail | object | **[User Activity]** User's activity detail based on template (only when userId is provided) |
 
 #### Business Rules
 - The `totalParticipants` field counts only users with "SIGNED_UP" state in the user_activity table
 - The `totalTime` field is calculated as `totalParticipants × duration`
 - Enhanced fields (`totalParticipants` and `totalTime`) are only included when `needsTotal=true`
 - If `needsTotal=false` or omitted, the response will not include the enhanced fields for better performance
+- When `userId` is provided, only activities that the user has signed up for are returned
+- User activity fields (`userActivityState`, `userActivityCreatedAt`, `userActivityChainId`, `userActivityDetail`) are only included when `userId` is provided
+- The `userActivityDetail` field structure depends on the activity's template ID and uses the flexible JSON detail system
+- Only administrators can query other users' activities; regular users can only query their own activities
 
 ---
 
@@ -2244,12 +2298,12 @@ GET /api/activities?userId=1&eventId=1
 | duration | integer | 活动时长（分钟） |
 | icon | string | 活动图标标识 |
 | description | string | 活动描述 |
-| startTime | string | 活动开始时间（ISO 8601格式） |
-| endTime | string | 活动结束时间（ISO 8601格式） |
+| startTime | string | 活动开始时间（yyyy-MM-dd HH:mm:ss格式） |
+| endTime | string | 活动结束时间（yyyy-MM-dd HH:mm:ss格式） |
 | status | string | 活动状态 |
 | visibleLocations | array | 活动可见位置 |
 | visibleRoles | array | 活动可见角色 |
-| createdAt | string | 活动创建时间（ISO 8601格式） |
+| createdAt | string | 活动创建时间（yyyy-MM-dd HH:mm:ss格式） |
 
 #### Error Responses
 
@@ -2342,6 +2396,10 @@ GET /api/templates?name=环保
 - 如果提供name参数，返回名称包含该关键词的模板
 - detail字段为JSON字符串格式，包含模板的详细配置信息
 - 模板可用于快速创建标准化的活动
+- **Activity Detail Structure**: Templates determine the structure of user activity details:
+  - Template ID 1: Basic activities (only comment field required)
+  - Template ID 2: Donation activities (comment and amount fields required)
+- The template ID is used by the ActivityDetailFactory to create appropriate detail objects
 
 ---
 

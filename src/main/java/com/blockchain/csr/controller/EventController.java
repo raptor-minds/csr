@@ -47,7 +47,6 @@ public class EventController {
     public ResponseEntity<BaseResponse<EventListResponse>> getEvents(
             @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
             @RequestParam(value = "pageSize", required = false, defaultValue = "10") Integer pageSize,
-            @RequestParam(value = "needsTotal", required = false, defaultValue = "false") Boolean needsTotal,
             @RequestParam(value = "eventName", required = false) String eventName
     ) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
@@ -73,12 +72,10 @@ public class EventController {
                         .createdAt(activity.getCreatedAt() != null ? activity.getCreatedAt().format(DATE_TIME_FORMATTER) : null);
                 
                 // Add enhanced fields for activities if requested
-                if (needsTotal != null && needsTotal) {
-                    Integer activityTotalParticipants = activityService.getTotalParticipants(activity.getId());
-                    Integer activityTotalTime = activityService.calculateTotalTime(activity, activityTotalParticipants);
-                    activityBuilder.totalParticipants(activityTotalParticipants)
-                                  .totalTime(activityTotalTime);
-                }
+                Integer activityTotalParticipants = activityService.getTotalParticipants(activity.getId());
+                Integer activityTotalTime = activityService.calculateTotalTime(activity, activityTotalParticipants);
+                activityBuilder.totalParticipants(activityTotalParticipants)
+                              .totalTime(activityTotalTime);
                 
                 return activityBuilder.build();
             }).collect(Collectors.toList());
@@ -95,14 +92,12 @@ public class EventController {
                     .detailImage(event.getDetailImage());
             
             // Add enhanced fields if requested
-            if (needsTotal != null && needsTotal) {
-                Integer totalParticipants = eventService.getTotalParticipants(event.getId());
-                Integer totalTime = eventService.calculateTotalTime(event.getId());
-                java.math.BigDecimal totalAmount = eventService.calculateTotalAmount(event.getId());
-                builder.totalParticipants(totalParticipants)
-                       .totalTime(totalTime)
-                       .totalAmount(totalAmount);
-            }
+            Integer totalParticipants = eventService.getTotalParticipants(event.getId());
+            Integer totalTime = eventService.calculateTotalTime(event.getId());
+            java.math.BigDecimal totalAmount = eventService.calculateTotalAmount(event.getId());
+            builder.totalParticipants(totalParticipants)
+                   .totalTime(totalTime)
+                   .totalAmount(totalAmount);
             
             return builder.build();
         }).collect(Collectors.toList());
