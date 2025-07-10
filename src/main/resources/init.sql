@@ -276,6 +276,21 @@ CREATE INDEX `user_role_map_user_id_fk_idx` ON `csr`.`user_role_map` (`user_id` 
 
 CREATE INDEX `user_role_map_role_id_fk_idx` ON `csr`.`user_role_map` (`role_id` ASC);
 
+-- -----------------------------------------------------
+-- Table `csr`.`photo`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `csr`.`photo` ;
+
+CREATE TABLE IF NOT EXISTS `csr`.`photo` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NOT NULL,
+  `type` VARCHAR(45) NULL,
+  `content` LONGTEXT NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB
+ROW_FORMAT = Dynamic;
+
+CREATE INDEX `idx_photo_name` ON `csr`.`photo` (`name` ASC);
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
