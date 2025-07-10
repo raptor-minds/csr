@@ -2395,25 +2395,20 @@ GET /api/templates?name=环保
 - **响应示例**：
 ```json
 {
-  "feedbackDetail": "这个系统很好用！",
-  "message": "反馈提交成功"
+  "status": "success",
+  "data": {
+    "feedbackDetail": "xxxx",
+    "message": "反馈提交成功"
+  }
 }
 ```
 
-### 获取反馈列表
-- **URL**: `GET /api/feedbacks`
-- **响应示例**：
+- 失败返回示例：
 ```json
-[
-  {
-    "id": 1,
-    "userId": 1,
-    "feedbackDetail": "这个系统很好用！"
-  },
-  {
-    "id": 2,
-    "userId": 2,
-    "feedbackDetail": "希望增加导出功能"
+{
+  "status": "fail",
+  "data": {
+    "message": "错误信息"
   }
-]
+}
 ```

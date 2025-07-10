@@ -999,6 +999,47 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "反馈管理",
+			"item": [
+				{
+					"name": "提交反馈",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"feedbackDetail\": \"测试反馈内容\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/feedback",
+							"host": [ "{{baseUrl}}" ],
+							"path": [ "api", "feedback" ]
+						},
+						"event": [
+							{
+								"listen": "test",
+								"script": {
+									"type": "text/javascript",
+									"exec": [
+										"pm.test(\"反馈接口返回结构校验\", function () {",
+										"    var jsonData = pm.response.json();",
+										"    pm.expect(jsonData).to.have.property('status', 'success');",
+										"    pm.expect(jsonData).to.have.property('data');",
+										"    pm.expect(jsonData.data).to.be.an('object');",
+										"    pm.expect(jsonData.data).to.have.property('feedbackDetail');",
+										"    pm.expect(jsonData.data).to.have.property('message');",
+										"});"
+									]
+								}
+							}
+						]
+					}
+				}
+			]
 		}
 	],
 	"event": [
