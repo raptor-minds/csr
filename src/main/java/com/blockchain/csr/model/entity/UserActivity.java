@@ -1,8 +1,11 @@
 package com.blockchain.csr.model.entity;
 
+import com.blockchain.csr.config.JsonConverter;
 import lombok.Data;
 
 import jakarta.persistence.*;
+
+import java.io.Serializable;
 import java.util.Date;
 
 
@@ -11,7 +14,9 @@ import java.util.Date;
  */
 @Entity
 @Data
-@Table(name = "user_activity")
+@Table(name = "user_activity", uniqueConstraints = {
+    @UniqueConstraint(name = "uk_user_activity", columnNames = {"user_id", "activity_id"})
+})
 public class UserActivity {
     @Id
     @Column(name = "id")
@@ -42,7 +47,8 @@ public class UserActivity {
     private String chainId;
 
     @Column(name = "detail", columnDefinition = "JSON")
-    private String detail;
+    @Convert(converter = JsonConverter.class)
+    private Serializable detail;
 
     // JPA relationships (optional - can be added later if needed)
     // @ManyToOne

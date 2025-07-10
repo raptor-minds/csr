@@ -3,10 +3,12 @@ package com.blockchain.csr.model.mapper;
 import com.blockchain.csr.model.dto.ActivityRequestDto;
 import com.blockchain.csr.model.dto.ActivityResponseDto;
 import com.blockchain.csr.model.entity.Activity;
+import com.blockchain.csr.model.enums.ActivityStatus;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -22,7 +24,6 @@ public class ActivityMapper {
         entity.setDescription(dto.getDescription());
         entity.setStartTime(dto.getStartTime());
         entity.setEndTime(dto.getEndTime());
-        entity.setStatus(dto.getStatus());
         entity.setVisibleLocations(convertToJson(dto.getVisibleLocations()));
         entity.setVisibleRoles(convertToJson(dto.getVisibleRoles()));
         entity.setImage1(dto.getImage1());
@@ -41,13 +42,36 @@ public class ActivityMapper {
         dto.setDescription(entity.getDescription());
         dto.setStartTime(entity.getStartTime());
         dto.setEndTime(entity.getEndTime());
-        dto.setStatus(entity.getStatus());
+        dto.setStatus(calculateActivityStatus(entity.getStartTime(), entity.getEndTime()));
         dto.setVisibleLocations(convertToList(entity.getVisibleLocations()));
         dto.setVisibleRoles(convertToList(entity.getVisibleRoles()));
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setImage1(entity.getImage1());
         dto.setImage2(entity.getImage2());
         return dto;
+    }
+
+    /**
+     * Calculate activity status based on current time vs start/end times
+     * 
+     * @param startTime the activity start time
+     * @param endTime the activity end time
+     * @return the calculated status string
+     */
+    private String calculateActivityStatus(LocalDateTime startTime, LocalDateTime endTime) {
+        if (startTime == null || endTime == null) {
+            return ActivityStatus.NOT_STARTED.getValue();
+        }
+        
+        LocalDateTime now = LocalDateTime.now();
+        
+        if (now.isBefore(startTime)) {
+            return ActivityStatus.NOT_STARTED.getValue();
+        } else if (now.isAfter(endTime)) {
+            return ActivityStatus.FINISHED.getValue();
+        } else {
+            return ActivityStatus.IN_PROGRESS.getValue();
+        }
     }
 
     /**
@@ -82,7 +106,6 @@ public class ActivityMapper {
         if (dto.getDescription() != null) entity.setDescription(dto.getDescription());
         if (dto.getStartTime() != null) entity.setStartTime(dto.getStartTime());
         if (dto.getEndTime() != null) entity.setEndTime(dto.getEndTime());
-        if (dto.getStatus() != null) entity.setStatus(dto.getStatus());
         if (dto.getVisibleLocations() != null) entity.setVisibleLocations(convertToJson(dto.getVisibleLocations()));
         if (dto.getVisibleRoles() != null) entity.setVisibleRoles(convertToJson(dto.getVisibleRoles()));
         if (dto.getImage1() != null) entity.setImage1(dto.getImage1());

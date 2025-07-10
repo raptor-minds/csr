@@ -3,6 +3,7 @@ package com.blockchain.csr.controller;
 import com.blockchain.csr.model.dto.*;
 import com.blockchain.csr.model.entity.Event;
 import com.blockchain.csr.model.entity.Activity;
+import com.blockchain.csr.model.enums.ActivityStatus;
 import com.blockchain.csr.repository.EventRepository;
 import com.blockchain.csr.repository.ActivityRepository;
 import com.blockchain.csr.service.EventService;
@@ -26,6 +27,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Date;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import jakarta.validation.Valid;
@@ -43,11 +45,33 @@ public class EventController {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
+    /**
+     * Calculate activity status based on current time vs start/end times
+     * 
+     * @param startTime the activity start time
+     * @param endTime the activity end time
+     * @return the calculated status string
+     */
+    private String calculateActivityStatus(LocalDateTime startTime, LocalDateTime endTime) {
+        if (startTime == null || endTime == null) {
+            return ActivityStatus.NOT_STARTED.getValue();
+        }
+        
+        LocalDateTime now = LocalDateTime.now();
+        
+        if (now.isBefore(startTime)) {
+            return ActivityStatus.NOT_STARTED.getValue();
+        } else if (now.isAfter(endTime)) {
+            return ActivityStatus.FINISHED.getValue();
+        } else {
+            return ActivityStatus.IN_PROGRESS.getValue();
+        }
+    }
+
     @GetMapping
     public ResponseEntity<BaseResponse<EventListResponse>> getEvents(
             @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
             @RequestParam(value = "pageSize", required = false, defaultValue = "10") Integer pageSize,
-            @RequestParam(value = "needsTotal", required = false, defaultValue = "false") Boolean needsTotal,
             @RequestParam(value = "eventName", required = false) String eventName
     ) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
@@ -69,16 +93,14 @@ public class EventController {
                         .description(activity.getDescription())
                         .startTime(activity.getStartTime() != null ? activity.getStartTime().format(DATE_TIME_FORMATTER) : null)
                         .endTime(activity.getEndTime() != null ? activity.getEndTime().format(DATE_TIME_FORMATTER) : null)
-                        .status(activity.getStatus())
+                        .status(calculateActivityStatus(activity.getStartTime(), activity.getEndTime()))
                         .createdAt(activity.getCreatedAt() != null ? activity.getCreatedAt().format(DATE_TIME_FORMATTER) : null);
                 
                 // Add enhanced fields for activities if requested
-                if (needsTotal != null && needsTotal) {
-                    Integer activityTotalParticipants = activityService.getTotalParticipants(activity.getId());
-                    Integer activityTotalTime = activityService.calculateTotalTime(activity, activityTotalParticipants);
-                    activityBuilder.totalParticipants(activityTotalParticipants)
-                                  .totalTime(activityTotalTime);
-                }
+                Integer activityTotalParticipants = activityService.getTotalParticipants(activity.getId());
+                Integer activityTotalTime = activityService.calculateTotalTime(activity, activityTotalParticipants);
+                activityBuilder.totalParticipants(activityTotalParticipants)
+                              .totalTime(activityTotalTime);
                 
                 return activityBuilder.build();
             }).collect(Collectors.toList());
@@ -95,14 +117,12 @@ public class EventController {
                     .detailImage(event.getDetailImage());
             
             // Add enhanced fields if requested
-            if (needsTotal != null && needsTotal) {
-                Integer totalParticipants = eventService.getTotalParticipants(event.getId());
-                Integer totalTime = eventService.calculateTotalTime(event.getId());
-                java.math.BigDecimal totalAmount = eventService.calculateTotalAmount(event.getId());
-                builder.totalParticipants(totalParticipants)
-                       .totalTime(totalTime)
-                       .totalAmount(totalAmount);
-            }
+            Integer totalParticipants = eventService.getTotalParticipants(event.getId());
+            Integer totalTime = eventService.calculateTotalTime(event.getId());
+            java.math.BigDecimal totalAmount = eventService.calculateTotalAmount(event.getId());
+            builder.totalParticipants(totalParticipants)
+                   .totalTime(totalTime)
+                   .totalAmount(totalAmount);
             
             return builder.build();
         }).collect(Collectors.toList());

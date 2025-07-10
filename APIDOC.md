@@ -3,6 +3,13 @@
 ## Overview
 This document describes the REST API endpoints for the CSR (Corporate Social Responsibility) system. The API uses JWT-based authentication with role-based access control.
 
+### Activity Detail System
+The system implements a flexible JSON field handling mechanism for user activity details:
+- **Template-based Structure**: Activity details have different structures based on the activity's template ID
+- **Polymorphic DTOs**: Uses `BasicDetailDTO` (Template ID 1) and `DonationDetailDTO` (Template ID 2) internally
+- **Type-safe Storage**: JSON fields are stored in the database using a custom converter for type safety
+- **Flexible API**: Accepts and returns `Map<String, Object>` for detail fields while maintaining internal type safety
+
 ## Base Information
 - **Base URL**: `http://localhost:8080`
 - **Authentication**: Bearer Token (JWT)
@@ -970,7 +977,9 @@ The detail object structure depends on the activity's template:
   - Template ID 1: Basic format with only comment field
   - Template ID 2: Donation format with comment and amount fields
 - The amount field for donation activities must be a positive decimal value greater than 0.01
-- The template_id is automatically set in the user_activity record based on the activity's template
+- The template_id is automatically retrieved from the activity table, not stored directly in user_activity
+- The detail field is stored as JSON in the database using a custom converter for type safety
+- The system uses polymorphic DTOs (BasicDetailDTO and DonationDetailDTO) internally to handle different detail structures
 
 ---
 
@@ -1071,6 +1080,8 @@ The details object structure depends on the activity's template:
 - Only activities with details are returned (activities without details are filtered out)
 - The template_id is retrieved from the activity table, not stored directly in user_activity
 - If an activity is deleted but the user_activity record remains, that entry will be filtered out
+- The detail field is converted from internal DTO format to Map<String, Object> for JSON response
+- The system uses ActivityDetailFactory to create appropriate detail objects based on template ID
 
 ---
 
@@ -1273,7 +1284,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ---
 
-## Event Management APIs
+## Event Management APIsE
 
 ### 1. Get Event List
 **Endpoint**: `GET /api/events`
@@ -1283,17 +1294,16 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 |-----------|------|----------|-------------|
 | page | number | No | Page number (default: 1) |
 | pageSize | number | No | Page size (default: 10) |
-| needsTotal | boolean | No | Include total participants and total time (default: false) |
 | eventName | string | No | Filter events by name (case-insensitive partial match) |
 
 #### Request Examples
 ```
-GET /api/events?page=1&pageSize=10&needsTotal=true
+GET /api/events?page=1&pageSize=10
 GET /api/events?eventName=tech&page=1&pageSize=10
-GET /api/events?eventName=Annual&needsTotal=true
+GET /api/events?eventName=Annual&page=1&pageSize=10
 ```
 
-#### Response Example (with needsTotal=true)
+#### Response Example
 ```json
 {
   "code": 200,
@@ -1345,42 +1355,6 @@ GET /api/events?eventName=Annual&needsTotal=true
 }
 ```
 
-#### Response Example (with needsTotal=false or omitted)
-```json
-{
-  "code": 200,
-  "message": "Success",
-  "data": {
-    "data": [
-      {
-        "id": 1,
-        "name": "Annual Tech Conference",
-        "startTime": "2024-03-20 09:00",
-        "endTime": "2024-03-20 18:00",
-        "isDisplay": true,
-        "bgImage": "https://example.com/bg.jpg",
-        "createdAt": "2024-03-15 14:30",
-        "activities": [
-          {
-            "id": 1,
-            "name": "Opening Speech",
-            "description": "CEO opening remarks",
-            "startTime": "2024-03-20 09:00",
-            "endTime": "2024-03-20 09:30",
-            "status": "ACTIVE",
-            "createdAt": "2024-03-15 14:45"
-          }
-        ],
-        "detailImage": "https://example.com/event-detail.jpg"
-      }
-    ],
-    "total": 5,
-    "page": 1,
-    "pageSize": 10
-  }
-}
-```
-
 #### Field Descriptions
 | Field | Type | Description |
 |-------|------|-------------|
@@ -1392,9 +1366,9 @@ GET /api/events?eventName=Annual&needsTotal=true
 | bgImage | string | Background image URL |
 | createdAt | string | Event creation timestamp (yyyy-MM-dd HH:mm format) |
 | activities | array | List of activities within the event |
-| totalParticipants | integer | **[Enhanced]** Total unique participants across all activities (only when needsTotal=true) |
-| totalTime | integer | **[Enhanced]** Sum of total time from all activities in minutes (only when needsTotal=true) |
-| totalAmount | decimal | **[Enhanced]** Total donation amount from all activities with templateId 2 (only when needsTotal=true) |
+| totalParticipants | integer | **[Enhanced]** Total unique participants across all activities |
+| totalTime | integer | **[Enhanced]** Sum of total time from all activities in minutes |
+| totalAmount | decimal | **[Enhanced]** Total donation amount from all activities with templateId 2 |
 | detailImage | string | Event detail image URL or path (max 2000 characters) |
 
 #### Activity Field Descriptions
@@ -1407,8 +1381,8 @@ GET /api/events?eventName=Annual&needsTotal=true
 | endTime | string | Activity end time (yyyy-MM-dd HH:mm format) |
 | status | string | Activity status |
 | createdAt | string | Activity creation timestamp (yyyy-MM-dd HH:mm format) |
-| totalParticipants | integer | **[Enhanced]** Total number of users signed up for this activity (only when needsTotal=true) |
-| totalTime | integer | **[Enhanced]** Total time for this activity in minutes (totalParticipants × duration, only when needsTotal=true) |
+| totalParticipants | integer | **[Enhanced]** Total number of users signed up for this activity |
+| totalTime | integer | **[Enhanced]** Total time for this activity in minutes (totalParticipants × duration) |
 
 #### Business Rules
 - **Event Filtering**: When `eventName` is provided, only events with names containing the search term (case-insensitive) are returned
@@ -1418,8 +1392,7 @@ GET /api/events?eventName=Annual&needsTotal=true
 - **Event Level**: The `totalTime` field is the sum of (participants × duration) for each activity in the event
 - **Activity Level**: Each activity's `totalTime` field is calculated as (activity participants × activity duration)
 - **Event Level**: The `totalAmount` field is the sum of donation amounts from all activities with templateId 2 (donation activities) where users are signed up
-- Enhanced fields (`totalParticipants`, `totalTime`, and `totalAmount`) are only included for both events and activities when `needsTotal=true`
-- If `needsTotal=false` or omitted, the response will not include the enhanced fields for better performance
+- Enhanced fields (`totalParticipants`, `totalTime`, and `totalAmount`) are always included in the response for both events and activities
 - Pagination is 1-based (page=1 is the first page)
 - Pagination works correctly with event name filtering - `total` reflects the count of filtered results
 
@@ -1616,13 +1589,15 @@ Retrieve a list of activities with optional filtering and enhanced information.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | eventId | integer | No | Filter activities by event ID |
+| userId | integer | No | Filter activities to show only those the user has signed up for (also includes user activity details) |
 | page | integer | No | Page number for pagination (1-based) |
 | pageSize | integer | No | Number of items per page (default: 10) |
 | needsTotal | boolean | No | Include total participants and total time (default: false) |
 
-#### Request Example
+#### Request Examples
 ```
 GET /api/activities?eventId=1&page=1&pageSize=10&needsTotal=true
+GET /api/activities?userId=1&eventId=1&page=1&pageSize=10&needsTotal=true
 ```
 
 #### Response Example (with needsTotal=true)
@@ -1681,6 +1656,39 @@ GET /api/activities?eventId=1&page=1&pageSize=10&needsTotal=true
 }
 ```
 
+#### Response Example (with userId parameter)
+```json
+{
+  "code": 200,
+  "message": "Success",
+  "data": [
+    {
+      "id": 1,
+      "name": "Community Cleanup",
+      "eventId": 1,
+      "templateId": 1,
+      "duration": 120,
+      "icon": "cleanup-icon",
+      "description": "Help clean up the local park",
+      "startTime": "2024-01-15 09:00",
+      "endTime": "2024-01-15 11:00",
+      "status": "ACTIVE",
+      "visibleLocations": ["New York", "Brooklyn"],
+      "visibleRoles": ["USER", "ADMIN"],
+      "createdAt": "2024-01-15 08:30",
+      "image1": "https://example.com/image1.jpg",
+      "image2": "https://example.com/image2.jpg",
+      "userActivityState": "SIGNED_UP",
+      "userActivityCreatedAt": "2024-01-15 10:00:00",
+      "userActivityChainId": "0x123456789abcdef",
+      "userActivityDetail": {
+        "comment": "Looking forward to helping clean up the park!"
+      }
+    }
+  ]
+}
+```
+
 #### Field Descriptions
 | Field | Type | Description |
 |-------|------|-------------|
@@ -1701,12 +1709,20 @@ GET /api/activities?eventId=1&page=1&pageSize=10&needsTotal=true
 | totalTime | integer | **[Enhanced]** Total time in minutes (totalParticipants × duration, only when needsTotal=true) |
 | image1 | string | Activity image 1 URL or path (max 2000 characters) |
 | image2 | string | Activity image 2 URL or path (max 2000 characters) |
+| userActivityState | string | **[User Activity]** User's participation state: "SIGNED_UP" or "WITHDRAWN" (only when userId is provided) |
+| userActivityCreatedAt | string | **[User Activity]** When the user signed up for the activity (only when userId is provided) |
+| userActivityChainId | string | **[User Activity]** Blockchain chain ID for the user's participation (only when userId is provided) |
+| userActivityDetail | object | **[User Activity]** User's activity detail based on template (only when userId is provided) |
 
 #### Business Rules
 - The `totalParticipants` field counts only users with "SIGNED_UP" state in the user_activity table
 - The `totalTime` field is calculated as `totalParticipants × duration`
 - Enhanced fields (`totalParticipants` and `totalTime`) are only included when `needsTotal=true`
 - If `needsTotal=false` or omitted, the response will not include the enhanced fields for better performance
+- When `userId` is provided, only activities that the user has signed up for are returned
+- User activity fields (`userActivityState`, `userActivityCreatedAt`, `userActivityChainId`, `userActivityDetail`) are only included when `userId` is provided
+- The `userActivityDetail` field structure depends on the activity's template ID and uses the flexible JSON detail system
+- Only administrators can query other users' activities; regular users can only query their own activities
 
 ---
 
@@ -1802,7 +1818,6 @@ Create a new activity within an event.
   "description": "Help clean up the local park",
   "startTime": "2024-01-15 09:00",
   "endTime": "2024-01-15 11:00",
-  "status": "not_registered",
   "visibleLocations": ["New York", "Brooklyn"],
   "visibleRoles": ["USER", "ADMIN"],
   "image1": "https://example.com/image1.jpg",
@@ -1835,7 +1850,7 @@ Create a new activity within an event.
 | description | string | Yes | Activity description (max 1000 characters) |
 | startTime | string | Yes | Activity start time (format: yyyy-MM-dd HH:mm) |
 | endTime | string | Yes | Activity end time (format: yyyy-MM-dd HH:mm) |
-| status | string | Yes | Activity status. Valid values: "not_registered", "registering", "full", "ended" |
+| status | string | No | Activity status (read-only). Value is automatically calculated based on current time vs start/end times. Not included in request body. |
 | visibleLocations | array | Yes | Locations where this activity is visible (at least 1 required) |
 | visibleRoles | array | Yes | User roles that can see this activity (at least 1 required) |
 | image1 | string | No | Activity image 1 URL or path (max 2000 characters) |
@@ -1847,6 +1862,13 @@ Create a new activity within an event.
 
 **DateTime Format**: All date and time fields use the format `yyyy-MM-dd HH:mm` (e.g., "2024-01-15 09:00"). Do not include seconds or use ISO 8601 format.
 
+**Time Validation**: The `endTime` must be after the `startTime`. Activities with invalid time ranges will be rejected with a validation error.
+
+**Status Calculation**: The `status` field is automatically calculated based on the current time compared to the activity's start and end times:
+- `NOT_STARTED`: Current time is before the start time
+- `IN_PROGRESS`: Current time is between start and end times
+- `FINISHED`: Current time is after the end time
+
 #### Error Responses
 
 ##### Validation Error (400)
@@ -1854,6 +1876,15 @@ Create a new activity within an event.
 {
   "code": 400,
   "message": "名称不能为空",
+  "data": null
+}
+```
+
+##### Time Validation Error (400)
+```json
+{
+  "code": 400,
+  "message": "结束时间必须晚于开始时间",
   "data": null
 }
 ```
@@ -1890,7 +1921,6 @@ Update an existing activity's information.
   "description": "Updated description for the park cleanup",
   "startTime": "2024-01-15 10:00",
   "endTime": "2024-01-15 12:30",
-  "status": "registering",
   "visibleLocations": ["New York", "Brooklyn", "Queens"],
   "visibleRoles": ["USER", "ADMIN"],
   "image1": "https://example.com/updated-image1.jpg",
@@ -1918,7 +1948,7 @@ Update an existing activity's information.
 | description | string | No | Activity description (max 1000 characters) |
 | startTime | string | No | Activity start time (format: yyyy-MM-dd HH:mm) |
 | endTime | string | No | Activity end time (format: yyyy-MM-dd HH:mm) |
-| status | string | No | Activity status. Valid values: "not_registered", "registering", "full", "ended" |
+| status | string | No | Activity status (read-only). Value is automatically calculated based on current time vs start/end times. Cannot be modified through API. |
 | visibleLocations | array | No | Locations where this activity is visible (at least 1 required if provided) |
 | visibleRoles | array | No | User roles that can see this activity (at least 1 required if provided) |
 | image1 | string | No | Activity image 1 URL or path (max 2000 characters) |
@@ -2244,12 +2274,12 @@ GET /api/activities?userId=1&eventId=1
 | duration | integer | 活动时长（分钟） |
 | icon | string | 活动图标标识 |
 | description | string | 活动描述 |
-| startTime | string | 活动开始时间（ISO 8601格式） |
-| endTime | string | 活动结束时间（ISO 8601格式） |
+| startTime | string | 活动开始时间（yyyy-MM-dd HH:mm:ss格式） |
+| endTime | string | 活动结束时间（yyyy-MM-dd HH:mm:ss格式） |
 | status | string | 活动状态 |
 | visibleLocations | array | 活动可见位置 |
 | visibleRoles | array | 活动可见角色 |
-| createdAt | string | 活动创建时间（ISO 8601格式） |
+| createdAt | string | 活动创建时间（yyyy-MM-dd HH:mm:ss格式） |
 
 #### Error Responses
 
@@ -2342,6 +2372,10 @@ GET /api/templates?name=环保
 - 如果提供name参数，返回名称包含该关键词的模板
 - detail字段为JSON字符串格式，包含模板的详细配置信息
 - 模板可用于快速创建标准化的活动
+- **Activity Detail Structure**: Templates determine the structure of user activity details:
+  - Template ID 1: Basic activities (only comment field required)
+  - Template ID 2: Donation activities (comment and amount fields required)
+- The template ID is used by the ActivityDetailFactory to create appropriate detail objects
 
 ---
 

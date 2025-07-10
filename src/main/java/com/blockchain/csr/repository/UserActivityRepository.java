@@ -45,7 +45,7 @@ public interface UserActivityRepository extends JpaRepository<UserActivity, Inte
      * @param activityId the activity ID
      * @return List<UserActivity>
      */
-    List<UserActivity> findByUserIdAndActivityId(Integer userId, Integer activityId);
+    UserActivity findByUserIdAndActivityId(Integer userId, Integer activityId);
     
     /**
      * Check if user activity exists by user ID and activity ID
