@@ -20,6 +20,7 @@ import java.util.Map;
 public class ActivityDetailFactory {
 
     private final ObjectMapper objectMapper;
+    private final BlockchainService blockchainService;
     
     /**
      * Create BasicDetailDTO from template ID and detail map (from request)
@@ -47,6 +48,38 @@ public class ActivityDetailFactory {
         return switch (templateId) {
             case 1 -> createBasicDetail(comment);
             case 2 -> createDonationDetail(comment, detailMap);
+            default -> throw new IllegalArgumentException("Unsupported template ID: " + templateId);
+        };
+    }
+    
+    /**
+     * Create BasicDetailDTO from template ID and detail map with user context (for blockchain operations)
+     * 
+     * @param templateId the template ID
+     * @param detailMap the detail data map from request
+     * @param userId the user ID (for blockchain operations)
+     * @param activityId the activity ID (for blockchain operations)
+     * @return BasicDetailDTO instance
+     * @throws IllegalArgumentException if validation fails or unsupported template ID
+     */
+    public BasicDetailDTO createDetail(Integer templateId, Map<String, Object> detailMap, Integer userId, Integer activityId) {
+        if (templateId == null) {
+            throw new IllegalArgumentException("Template ID cannot be null");
+        }
+        
+        if (detailMap == null || detailMap.isEmpty()) {
+            throw new IllegalArgumentException("Detail map cannot be null or empty");
+        }
+
+        // Validate comment (required for all templates)
+        String comment = (String) detailMap.get("comment");
+        if (comment == null || comment.trim().isEmpty()) {
+            throw new IllegalArgumentException("Comment is required");
+        }
+        
+        return switch (templateId) {
+            case 1 -> createBasicDetail(comment);
+            case 2 -> createDonationDetailWithBlockchain(comment, detailMap, userId, activityId);
             default -> throw new IllegalArgumentException("Unsupported template ID: " + templateId);
         };
     }
@@ -100,8 +133,45 @@ public class ActivityDetailFactory {
         if (amount.compareTo(BigDecimal.valueOf(0.01)) < 0) {
             throw new IllegalArgumentException("Amount must be greater than 0.01");
         }
+
+        DonationDetailDTO donationDetailDTO = new DonationDetailDTO(comment, amount);
+
+        return donationDetailDTO;
+    }
+    
+    /**
+     * Create DonationDetailDTO for template ID 2 with blockchain integration
+     */
+    private DonationDetailDTO createDonationDetailWithBlockchain(String comment, Map<String, Object> detailMap, Integer userId, Integer activityId) {
+        Object amountObj = detailMap.get("amount");
+        if (amountObj == null) {
+            throw new IllegalArgumentException("Amount is required for donation activities");
+        }
         
-        return new DonationDetailDTO(comment, amount);
+        BigDecimal amount = convertToAmount(amountObj);
+        if (amount.compareTo(BigDecimal.valueOf(0.01)) < 0) {
+            throw new IllegalArgumentException("Amount must be greater than 0.01");
+        }
+
+        // 调用区块链服务创建交易
+        try {
+            log.info("Creating blockchain transaction for donation - userId: {}, activityId: {}, amount: {}", 
+                    userId, activityId, amount);
+            
+            // 创建捐赠详情DTO，包含chainId
+            DonationDetailDTO donationDetailDTO = new DonationDetailDTO(comment, amount);
+
+            String chainId = blockchainService.createDonationTransaction(userId, donationDetailDTO);
+
+            log.info("Successfully created blockchain transaction with chainId: {}", chainId);
+            
+            return donationDetailDTO;
+            
+        } catch (Exception e) {
+            log.error("Failed to create blockchain transaction for donation - userId: {}, activityId: {}, amount: {}", 
+                    userId, activityId, amount, e);
+            throw new RuntimeException("Failed to create blockchain transaction for donation", e);
+        }
     }
     
     /**

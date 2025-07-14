@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.DecimalMin;
+import lombok.ToString;
+
 import java.math.BigDecimal;
 
 /**
@@ -13,6 +15,7 @@ import java.math.BigDecimal;
  * Used for template_id = 2
  */
 @Data
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class DonationDetailDTO extends BasicDetailDTO {
