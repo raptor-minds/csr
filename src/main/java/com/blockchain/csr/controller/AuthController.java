@@ -13,6 +13,7 @@ import com.blockchain.csr.service.Impl.UserServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -62,7 +63,18 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<BaseResponse<AuthResponse>> login(@RequestBody AuthRequest request) {
+        return generateAuthResponse(request);
+    }
+
+    @PostMapping("/admin/login")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BaseResponse<AuthResponse>> adminLogin(@RequestBody AuthRequest request) {
+        return generateAuthResponse(request);
+    }
+
+    private ResponseEntity<BaseResponse<AuthResponse>> generateAuthResponse(AuthRequest request) {
         try {
             authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
