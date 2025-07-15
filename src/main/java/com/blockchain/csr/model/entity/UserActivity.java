@@ -14,9 +14,7 @@ import java.util.Date;
  */
 @Entity
 @Data
-@Table(name = "user_activity", uniqueConstraints = {
-    @UniqueConstraint(name = "uk_user_activity", columnNames = {"user_id", "activity_id"})
-})
+@Table(name = "user_activity")
 public class UserActivity {
     @Id
     @Column(name = "id")
@@ -49,6 +47,9 @@ public class UserActivity {
     @Column(name = "detail", columnDefinition = "JSON")
     @Convert(converter = JsonConverter.class)
     private Serializable detail;
+
+    @Column(name = "deleted", nullable = false)
+    private Boolean deleted = false;
 
     // JPA relationships (optional - can be added later if needed)
     // @ManyToOne

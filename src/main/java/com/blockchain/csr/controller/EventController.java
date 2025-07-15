@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Date;
@@ -57,7 +58,7 @@ public class EventController {
             return ActivityStatus.NOT_STARTED.getValue();
         }
         
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Shanghai"));
         
         if (now.isBefore(startTime)) {
             return ActivityStatus.NOT_STARTED.getValue();
@@ -65,6 +66,29 @@ public class EventController {
             return ActivityStatus.FINISHED.getValue();
         } else {
             return ActivityStatus.IN_PROGRESS.getValue();
+        }
+    }
+
+    /**
+     * Calculate event status based on current time vs start/end times
+     * 
+     * @param startTime the event start time
+     * @param endTime the event end time
+     * @return the calculated status string
+     */
+    private String calculateEventStatus(Date startTime, Date endTime) {
+        if (startTime == null || endTime == null) {
+            return "NOT_STARTED";
+        }
+        
+        Date now = new Date();
+        
+        if (now.before(startTime)) {
+            return "NOT_STARTED";
+        } else if (now.after(endTime)) {
+            return "FINISHED";
+        } else {
+            return "IN_PROGRESS";
         }
     }
 
@@ -110,6 +134,7 @@ public class EventController {
                     .name(event.getName())
                     .startTime(event.getStartTime() != null ? sdf.format(event.getStartTime()) : null)
                     .endTime(event.getEndTime() != null ? sdf.format(event.getEndTime()) : null)
+                    .status(calculateEventStatus(event.getStartTime(), event.getEndTime()))
                     .isDisplay(true) // 需补充字段
                     .bgImage(event.getAvatar())
                     .activities(activities)
@@ -161,6 +186,7 @@ public class EventController {
                 .name(event.getName())
                 .startTime(event.getStartTime() != null ? sdf.format(event.getStartTime()) : null)
                 .endTime(event.getEndTime() != null ? sdf.format(event.getEndTime()) : null)
+                .status(calculateEventStatus(event.getStartTime(), event.getEndTime()))
                 .icon(event.getAvatar())
                 .description(event.getDescription())
                 .isDisplay(event.getIsDisplay() != null ? event.getIsDisplay() : false)
@@ -175,6 +201,11 @@ public class EventController {
     @PostMapping
     public ResponseEntity<BaseResponse<Object>> createEvent(@Valid @RequestBody EventCreateRequest request) {
         try {
+            // Validate that endTime is after startTime
+            if (!request.isEndTimeAfterStartTime()) {
+                return ResponseEntity.ok(BaseResponse.error(400, "结束时间必须晚于开始时间"));
+            }
+            
             Event event = new Event();
             event.setName(request.getName());
             event.setStartTime(request.getStartTime());
@@ -197,6 +228,11 @@ public class EventController {
     @PutMapping("/{id}")
     public ResponseEntity<BaseResponse<Object>> updateEvent(@PathVariable Integer id, @Valid @RequestBody EventCreateRequest request) {
         try{
+            // Validate that endTime is after startTime
+            if (!request.isEndTimeAfterStartTime()) {
+                return ResponseEntity.ok(BaseResponse.error(400, "结束时间必须晚于开始时间"));
+            }
+            
             Event event = eventRepository.findById(id).orElse(null);
             if (event == null) {
                 return ResponseEntity.ok(BaseResponse.error(404, "事件不存在"));

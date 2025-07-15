@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Component
@@ -63,7 +64,7 @@ public class ActivityMapper {
             return ActivityStatus.NOT_STARTED.getValue();
         }
         
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Shanghai"));
         
         if (now.isBefore(startTime)) {
             return ActivityStatus.NOT_STARTED.getValue();
