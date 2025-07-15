@@ -172,9 +172,8 @@ CREATE TABLE IF NOT EXISTS `csr`.`user_activity` (
   `created_at` DATETIME NULL,
   `chain_id` VARCHAR(45) NULL,
   `detail` JSON NULL,
+  `deleted` BOOLEAN NOT NULL DEFAULT FALSE,
   PRIMARY KEY (`id`),
-  -- Unique constraint to prevent duplicate entries for same user and activity
-  UNIQUE KEY `uk_user_activity` (`user_id`, `activity_id`),
   CONSTRAINT `user_activity_user_fk`
     FOREIGN KEY (`user_id`)
     REFERENCES `csr`.`user` (`id`)

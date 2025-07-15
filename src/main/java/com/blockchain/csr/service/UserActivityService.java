@@ -76,15 +76,19 @@ public class UserActivityService{
                     request.getUserId(), request.getActivityId());
             
             // 1. Find the user activity record
-            UserActivity userActivity = userActivityRepository
+            List<UserActivity> userActivities = userActivityRepository
                     .findByUserIdAndActivityId(request.getUserId(), request.getActivityId());
             
-            if (ObjectUtils.isEmpty(userActivity)) {
+            if (ObjectUtils.isEmpty(userActivities)) {
                 throw new IllegalArgumentException("User has not signed up for this activity");
+            } else if (userActivities.size() > 1) {
+                log.warn("Multiple active user_activity for user ID: {}", request.getUserId());
             }
+            UserActivity userActivity = userActivities.get(0);
             
-            // 2. Check if user is signed up (state = "SIGNED_UP")
-            if (!UserActivityState.SIGNED_UP.getValue().equals(userActivity.getState())) {
+            // 2. Check if user is signed up (state = "SIGNED_UP") and not deleted
+            if (!UserActivityState.SIGNED_UP.getValue().equals(userActivity.getState()) || 
+                (userActivity.getDeleted() != null && userActivity.getDeleted())) {
                 throw new IllegalArgumentException("User is not signed up for this activity");
             }
             

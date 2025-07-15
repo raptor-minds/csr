@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Date;
@@ -57,7 +58,7 @@ public class EventController {
             return ActivityStatus.NOT_STARTED.getValue();
         }
         
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Shanghai"));
         
         if (now.isBefore(startTime)) {
             return ActivityStatus.NOT_STARTED.getValue();

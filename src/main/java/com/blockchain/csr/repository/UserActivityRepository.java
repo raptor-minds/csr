@@ -20,23 +20,8 @@ public interface UserActivityRepository extends JpaRepository<UserActivity, Inte
      * @param userId the user ID
      * @return List<UserActivity>
      */
+    @Query("SELECT ua FROM UserActivity ua WHERE ua.userId = :userId AND (ua.deleted = false OR ua.deleted IS NULL)")
     List<UserActivity> findByUserId(Integer userId);
-    
-    /**
-     * Find user activities by activity ID
-     *
-     * @param activityId the activity ID
-     * @return List<UserActivity>
-     */
-    List<UserActivity> findByActivityId(Integer activityId);
-    
-    /**
-     * Find user activities by state
-     *
-     * @param state the state
-     * @return List<UserActivity>
-     */
-    List<UserActivity> findByState(String state);
     
     /**
      * Find user activities by user and activity
@@ -45,7 +30,8 @@ public interface UserActivityRepository extends JpaRepository<UserActivity, Inte
      * @param activityId the activity ID
      * @return List<UserActivity>
      */
-    UserActivity findByUserIdAndActivityId(Integer userId, Integer activityId);
+    @Query("SELECT ua FROM UserActivity ua WHERE ua.userId = :userId and ua.activityId = :activityId AND (ua.deleted = false OR ua.deleted IS NULL)")
+    List<UserActivity> findByUserIdAndActivityId(Integer userId, Integer activityId);
     
     /**
      * Check if user activity exists by user ID and activity ID
@@ -57,32 +43,33 @@ public interface UserActivityRepository extends JpaRepository<UserActivity, Inte
     boolean existsByUserIdAndActivityId(Integer userId, Integer activityId);
     
     /**
-     * Find user activities by multiple activity IDs and state
+     * Find user activities by multiple activity IDs and state (excluding deleted)
      *
      * @param activityIds the list of activity IDs
      * @param state the state
      * @return List<UserActivity>
      */
-    List<UserActivity> findByActivityIdInAndState(List<Integer> activityIds, String state);
+    @Query("SELECT ua FROM UserActivity ua WHERE ua.activityId IN :activityIds AND ua.state = :state AND (ua.deleted = false OR ua.deleted IS NULL)")
+    List<UserActivity> findByActivityIdInAndState(@Param("activityIds") List<Integer> activityIds, @Param("state") String state);
     
     /**
-     * Count participants with SIGNED_UP state for a specific activity
+     * Count participants with SIGNED_UP state for a specific activity (excluding deleted)
      *
      * @param activityId the activity ID
      * @return number of signed up participants
      */
-    @Query("SELECT COUNT(ua) FROM UserActivity ua WHERE ua.activityId = :activityId AND ua.state = 'SIGNED_UP'")
+    @Query("SELECT COUNT(ua) FROM UserActivity ua WHERE ua.activityId = :activityId AND ua.state = 'SIGNED_UP' AND (ua.deleted = false OR ua.deleted IS NULL)")
     Integer countSignedUpParticipantsByActivityId(@Param("activityId") Integer activityId);
     
     /**
-     * Count unique participants with SIGNED_UP state for all activities in an event (de-duplicated)
+     * Count unique participants with SIGNED_UP state for all activities in an event (de-duplicated, excluding deleted)
      *
      * @param eventId the event ID
      * @return number of unique signed up participants across all activities in the event
      */
     @Query("SELECT COUNT(DISTINCT ua.userId) FROM UserActivity ua " +
            "JOIN Activity a ON ua.activityId = a.id " +
-           "WHERE a.eventId = :eventId AND ua.state = 'SIGNED_UP'")
+           "WHERE a.eventId = :eventId AND ua.state = 'SIGNED_UP' AND (ua.deleted = false OR ua.deleted IS NULL)")
     Integer countUniqueSignedUpParticipantsByEventId(@Param("eventId") Integer eventId);
 
     /**
