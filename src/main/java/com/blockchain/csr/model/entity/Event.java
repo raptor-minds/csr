@@ -6,7 +6,7 @@ import lombok.Data;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * @author zhangrucheng on 2025/5/19
@@ -37,21 +37,21 @@ public class Event {
     */
     @Column(name = "start_time")
     @Temporal(TemporalType.TIMESTAMP)
-    private Date startTime;
+    private LocalDateTime startTime;
 
     /**
     * 
     */
     @Column(name = "end_time")
     @Temporal(TemporalType.TIMESTAMP)
-    private Date endTime;
+    private LocalDateTime endTime;
 
     /**
     * 
     */
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     /**
     * 

@@ -23,11 +23,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.Date;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -76,16 +74,16 @@ public class EventController {
      * @param endTime the event end time
      * @return the calculated status string
      */
-    private String calculateEventStatus(Date startTime, Date endTime) {
+    private String calculateEventStatus(LocalDateTime startTime, LocalDateTime endTime) {
         if (startTime == null || endTime == null) {
             return "NOT_STARTED";
         }
         
-        Date now = new Date();
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Shanghai"));
         
-        if (now.before(startTime)) {
+        if (now.isBefore(startTime)) {
             return "NOT_STARTED";
-        } else if (now.after(endTime)) {
+        } else if (now.isAfter(endTime)) {
             return "FINISHED";
         } else {
             return "IN_PROGRESS";
@@ -107,7 +105,6 @@ public class EventController {
         } else {
             eventPage = eventRepository.findAll(pageable);
         }
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         
         List<EventWithActivitiesDto> eventList = eventPage.getContent().stream().map(event -> {
             List<ActivityDto> activities = activityRepository.findByEventId(event.getId()).stream().map(activity -> {
@@ -132,13 +129,13 @@ public class EventController {
             EventWithActivitiesDto.EventWithActivitiesDtoBuilder builder = EventWithActivitiesDto.builder()
                     .id(event.getId())
                     .name(event.getName())
-                    .startTime(event.getStartTime() != null ? sdf.format(event.getStartTime()) : null)
-                    .endTime(event.getEndTime() != null ? sdf.format(event.getEndTime()) : null)
+                    .startTime(event.getStartTime() != null ? event.getStartTime().format(DATE_TIME_FORMATTER) : null)
+                    .endTime(event.getEndTime() != null ? event.getEndTime().format(DATE_TIME_FORMATTER) : null)
                     .status(calculateEventStatus(event.getStartTime(), event.getEndTime()))
                     .isDisplay(true) // 需补充字段
                     .bgImage(event.getAvatar())
                     .activities(activities)
-                    .createdAt(event.getCreatedAt() != null ? sdf.format(event.getCreatedAt()) : null)
+                    .createdAt(event.getCreatedAt() != null ? event.getCreatedAt().format(DATE_TIME_FORMATTER) : null)
                     .detailImage(event.getDetailImage());
             
             // Add enhanced fields if requested
@@ -180,19 +177,18 @@ public class EventController {
             visibleLocations = List.of("未知");
             visibleRoles = List.of("未知");
         }
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         EventDetailDto detail = EventDetailDto.builder()
                 .id(event.getId())
                 .name(event.getName())
-                .startTime(event.getStartTime() != null ? sdf.format(event.getStartTime()) : null)
-                .endTime(event.getEndTime() != null ? sdf.format(event.getEndTime()) : null)
+                .startTime(event.getStartTime() != null ? event.getStartTime().format(DATE_TIME_FORMATTER) : null)
+                .endTime(event.getEndTime() != null ? event.getEndTime().format(DATE_TIME_FORMATTER) : null)
                 .status(calculateEventStatus(event.getStartTime(), event.getEndTime()))
                 .icon(event.getAvatar())
                 .description(event.getDescription())
                 .isDisplay(event.getIsDisplay() != null ? event.getIsDisplay() : false)
                 .visibleLocations(visibleLocations)
                 .visibleRoles(visibleRoles)
-                .createdAt(event.getCreatedAt() != null ? sdf.format(event.getCreatedAt()) : null)
+                .createdAt(event.getCreatedAt() != null ? event.getCreatedAt().format(DATE_TIME_FORMATTER) : null)
                 .detailImage(event.getDetailImage())
                 .build();
         return ResponseEntity.ok(BaseResponse.success(detail));
@@ -217,7 +213,7 @@ public class EventController {
             event.setVisibleRoles(objectMapper.writeValueAsString(request.getVisibleRoles()));
             event.setDetailImage(request.getDetailImage());
             // Set created_at to current system time
-            event.setCreatedAt(new Date());
+            event.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
             eventRepository.save(event);
             return ResponseEntity.ok(BaseResponse.success("事件创建成功"));
         } catch (Exception e) {

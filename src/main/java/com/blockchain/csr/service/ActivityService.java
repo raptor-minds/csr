@@ -17,7 +17,6 @@ import com.blockchain.csr.repository.UserRepository;
 
 import java.time.ZoneId;
 import java.util.List;
-import java.util.Date;
 import java.time.LocalDateTime;
 // 添加分页相关import
 import org.springframework.data.domain.Pageable;
@@ -133,7 +132,7 @@ public class ActivityService{
                      (existingRecord.getDeleted() != null && existingRecord.getDeleted())) {
                 existingRecord.setState(UserActivityState.SIGNED_UP.getValue());
                 existingRecord.setDeleted(false); // 重新激活记录
-                existingRecord.setCreatedAt(new Date()); // 更新报名时间
+                existingRecord.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Shanghai"))); // 更新报名时间
                 userActivityRepository.save(existingRecord);
                 return;
             }
@@ -144,7 +143,7 @@ public class ActivityService{
         userActivity.setUserId(userId);
         userActivity.setActivityId(activityId);
         userActivity.setState(UserActivityState.SIGNED_UP.getValue());
-        userActivity.setCreatedAt(new Date());
+        userActivity.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
         // chain_id, detail, endorsed_at, endorsed_by 字段设为空，符合要求
         
         try {
