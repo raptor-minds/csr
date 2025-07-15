@@ -107,11 +107,17 @@ public class ActivityService{
         // 验证活动是否存在
         Activity activity = activityRepository.findById(activityId)
                 .orElseThrow(() -> new IllegalArgumentException("Activity not found"));
-        
+
+        // 判断当前时间是否在活动的startTime和endTime之间，改为用状态判断
+        String status = activityMapper.calculateActivityStatus(activity.getStartTime(), activity.getEndTime());
+        if (!"IN_PROGRESS".equals(status)) {
+            throw new IllegalStateException("activity not started");
+        }
+
         // 验证用户是否存在
         userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        
+            
         // 检查用户是否已经有该活动的记录
         UserActivity existingRecord = userActivityRepository.findByUserIdAndActivityId(userId, activityId);
         

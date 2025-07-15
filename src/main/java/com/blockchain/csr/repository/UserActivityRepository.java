@@ -93,9 +93,4 @@ public interface UserActivityRepository extends JpaRepository<UserActivity, Inte
      */
     @Query("SELECT ua FROM UserActivity ua JOIN Activity a ON ua.activityId = a.id WHERE ua.userId = :userId AND a.eventId = :eventId")
     List<UserActivity> findByUserIdAndEventId(@Param("userId") Integer userId, @Param("eventId") Integer eventId);
-
-    /**
-     * Find the latest user activity by userId and activityId (by createdAt desc)
-     */
-    UserActivity findTopByUserIdAndActivityIdOrderByCreatedAtDesc(Integer userId, Integer activityId);
 } 

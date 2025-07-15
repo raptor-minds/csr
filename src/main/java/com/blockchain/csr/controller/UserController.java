@@ -196,22 +196,4 @@ public class UserController {
         }
     }
 
-    /**
-     * 获取指定userId和activityId的最新一条UserActivity记录
-     */
-    @GetMapping("/user-activity/latest")
-    public ResponseEntity<BaseResponse<UserActivityDto>> getLatestUserActivity(@RequestParam Integer userId, @RequestParam Integer activityId) {
-        try {
-            log.info("Get latest userActivity for userId: {}, activityId: {}", userId, activityId);
-            UserActivityDto dto = userActivityService.getLatestUserActivity(userId, activityId);
-            if (dto == null) {
-                return ResponseEntity.ok(BaseResponse.error(404, "未找到相关记录"));
-            }
-            return ResponseEntity.ok(BaseResponse.success(dto));
-        } catch (Exception e) {
-            log.error("Error getting latest userActivity: {}", e.getMessage(), e);
-            return ResponseEntity.status(500).body(BaseResponse.internalError("服务器内部错误"));
-        }
-    }
-
 } 
