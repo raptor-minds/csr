@@ -14,10 +14,10 @@ import com.blockchain.csr.model.dto.DonationDetailDTO;
 import com.blockchain.csr.repository.EventRepository;
 import com.blockchain.csr.repository.ActivityRepository;
 import com.blockchain.csr.repository.UserActivityRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
-import java.util.Date;
 import java.util.stream.Collectors;
 import java.math.BigDecimal;
 /**
@@ -32,39 +32,11 @@ public class EventService{
     private final EventRepository eventRepository;
     private final ActivityRepository activityRepository;
     private final UserActivityRepository userActivityRepository;
-    private final ObjectMapper objectMapper = new ObjectMapper();
     private final ActivityDetailFactory activityDetailFactory;
-
-    
-    public int deleteByPrimaryKey(Integer id) {
-        eventRepository.deleteById(id);
-        return 1; // JPA doesn't return affected rows, assuming success
-    }
 
     public int insert(Event record) {
         // Set created_at to current system time
-        record.setCreatedAt(new Date());
-        eventRepository.save(record);
-        return 1; // JPA doesn't return affected rows, assuming success
-    }
-
-    public int insertSelective(Event record) {
-        // Set created_at to current system time
-        record.setCreatedAt(new Date());
-        eventRepository.save(record);
-        return 1; // JPA doesn't return affected rows, assuming success
-    }
-
-    public Event selectByPrimaryKey(Integer id) {
-        return eventRepository.findById(id).orElse(null);
-    }
-
-    public int updateByPrimaryKeySelective(Event record) {
-        eventRepository.save(record);
-        return 1; // JPA doesn't return affected rows, assuming success
-    }
-
-    public int updateByPrimaryKey(Event record) {
+        record.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
         eventRepository.save(record);
         return 1; // JPA doesn't return affected rows, assuming success
     }

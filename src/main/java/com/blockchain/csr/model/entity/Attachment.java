@@ -3,7 +3,8 @@ package com.blockchain.csr.model.entity;
 import lombok.Data;
 
 import jakarta.persistence.*;
-import java.util.Date;
+
+import java.time.LocalDateTime;
 
 /**
  * @author zhangrucheng on 2025/5/19
@@ -29,7 +30,7 @@ public class Attachment {
 
     @Column(name = "create_at")
     @Temporal(TemporalType.TIMESTAMP)
-    private Date createAt;
+    private LocalDateTime createAt;
 
     @Column(name = "chain_id", length = 45)
     private String chainId;

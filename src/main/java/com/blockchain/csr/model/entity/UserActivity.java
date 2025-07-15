@@ -6,7 +6,7 @@ import lombok.Data;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 
 /**
@@ -35,11 +35,11 @@ public class UserActivity {
 
     @Column(name = "endorsed_at")
     @Temporal(TemporalType.TIMESTAMP)
-    private Date endorsedAt;
+    private LocalDateTime endorsedAt;
 
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "chain_id", length = 45)
     private String chainId;

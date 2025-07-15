@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 /**
  * DTO for user activity information
  */
@@ -57,12 +59,12 @@ public class UserActivityDto {
     /**
      * Endorsed at
      */
-    private java.util.Date endorsedAt;
+    private LocalDateTime endorsedAt;
     
     /**
      * Created at
      */
-    private java.util.Date createdAt;
+    private LocalDateTime createdAt;
     
     /**
      * Chain ID
