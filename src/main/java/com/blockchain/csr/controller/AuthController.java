@@ -63,13 +63,11 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<BaseResponse<AuthResponse>> login(@RequestBody AuthRequest request) {
         return generateAuthResponse(request);
     }
 
     @PostMapping("/admin/login")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<BaseResponse<AuthResponse>> adminLogin(@RequestBody AuthRequest request) {
         return generateAuthResponse(request);
     }
@@ -80,6 +78,12 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
             );
 
+            // 查询用户角色
+            User user = userService.getUserByUsername(request.getUsername());
+            if (user == null || !"ADMIN".equalsIgnoreCase(user.getRole())) {
+                return ResponseEntity.status(403).body(BaseResponse.forbidden("无权登录后台"));
+            }
+
             UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
             String accessToken = jwtUtil.generateAccessToken(userDetails);
             String refreshToken = jwtUtil.generateRefreshToken(userDetails);
@@ -87,7 +91,7 @@ public class AuthController {
             // Store the refresh token
             refreshTokenService.addRefreshToken(request.getUsername(), refreshToken);
 
-            User user = userService.getUserByUsername(request.getUsername());
+//            user = userService.getUserByUsername(request.getUsername());
 
             AuthResponse authResponse = AuthResponse.builder()
                     .accessToken(accessToken)
