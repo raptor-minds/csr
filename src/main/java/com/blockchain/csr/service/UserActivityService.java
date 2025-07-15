@@ -65,28 +65,6 @@ public class UserActivityService{
     }
 
     /**
-     * Convert database result to UserActivityDto
-     *
-     * @param result the database result array
-     * @return UserActivityDto
-     */
-    private UserActivityDto convertToUserActivityDto(Object[] result) {
-        Integer activityId = (Integer) result[0];
-        String activityName = (String) result[1];
-        String eventName = (String) result[2];
-        Integer duration = (Integer) result[3];
-        String state = (String) result[4];
-        
-        return UserActivityDto.builder()
-                .id(activityId)
-                .name(activityName)
-                .eventName(eventName)
-                .duration(duration)
-                .state(state)
-                .build();
-    }
-
-    /**
      * Update activity detail for a user
      *
      * @param request the activity detail request
@@ -172,6 +150,28 @@ public class UserActivityService{
             log.error("Error fetching activity details for user ID {}: {}", userId, e.getMessage(), e);
             throw new RuntimeException("Failed to fetch user activity details", e);
         }
+    }
+    
+    /**
+     * 获取指定userId和activityId的最新一条UserActivity记录
+     */
+    public UserActivityDto getLatestUserActivity(Integer userId, Integer activityId) {
+        UserActivity userActivity = userActivityRepository.findTopByUserIdAndActivityIdOrderByCreatedAtDesc(userId, activityId);
+        if (userActivity == null) {
+            return null;
+        }
+        // 简单转换为DTO
+        return UserActivityDto.builder()
+                .id(userActivity.getId())
+                .userId(userActivity.getUserId())
+                .activityId(userActivity.getActivityId())
+                .state(userActivity.getState())
+                .endorsedBy(userActivity.getEndorsedBy())
+                .endorsedAt(userActivity.getEndorsedAt())
+                .createdAt(userActivity.getCreatedAt())
+                .chainId(userActivity.getChainId())
+                .detail(userActivity.getDetail() instanceof BasicDetailDTO ? (BasicDetailDTO) userActivity.getDetail() : null)
+                .build();
     }
     
     /**
