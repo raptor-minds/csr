@@ -64,26 +64,25 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<BaseResponse<AuthResponse>> login(@RequestBody AuthRequest request) {
-        return generateAuthResponse(request);
+        User user = userService.getUserByUsername(request.getUsername());
+        return generateAuthResponse(request, user);
     }
 
     @PostMapping("/admin/login")
     public ResponseEntity<BaseResponse<AuthResponse>> adminLogin(@RequestBody AuthRequest request) {
-        return generateAuthResponse(request);
+        // 查询用户角色
+        User user = userService.getUserByUsername(request.getUsername());
+        if (user == null || !"ADMIN".equalsIgnoreCase(user.getRole())) {
+            return ResponseEntity.status(403).body(BaseResponse.forbidden("无权登录后台"));
+        }
+        return generateAuthResponse(request, user);
     }
 
-    private ResponseEntity<BaseResponse<AuthResponse>> generateAuthResponse(AuthRequest request) {
+    private ResponseEntity<BaseResponse<AuthResponse>> generateAuthResponse(AuthRequest request, User user) {
         try {
             authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
             );
-
-            // 查询用户角色
-            User user = userService.getUserByUsername(request.getUsername());
-            if (user == null || !"ADMIN".equalsIgnoreCase(user.getRole())) {
-                return ResponseEntity.status(403).body(BaseResponse.forbidden("无权登录后台"));
-            }
-
             UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
             String accessToken = jwtUtil.generateAccessToken(userDetails);
             String refreshToken = jwtUtil.generateRefreshToken(userDetails);
