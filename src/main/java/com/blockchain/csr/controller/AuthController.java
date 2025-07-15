@@ -65,9 +65,6 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<BaseResponse<AuthResponse>> login(@RequestBody AuthRequest request) {
         User user = userService.getUserByUsername(request.getUsername());
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-        );
         return generateAuthResponse(request, user);
     }
 
