@@ -17,6 +17,7 @@ public class EventWithActivitiesDto {
     private String name;
     private String startTime;
     private String endTime;
+    private String status;
     private Boolean isDisplay;
     private String bgImage;
     private List<ActivityDto> activities;

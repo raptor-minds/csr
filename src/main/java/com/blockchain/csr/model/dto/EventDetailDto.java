@@ -16,6 +16,7 @@ public class EventDetailDto {
     private String name;
     private String startTime;
     private String endTime;
+    private String status;
     private String icon;
     private String description;
     private Boolean isDisplay;

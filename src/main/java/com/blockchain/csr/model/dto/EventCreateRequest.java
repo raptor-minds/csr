@@ -46,4 +46,14 @@ public class EventCreateRequest {
 
     @Size(max = 2000, message = "Detail image length cannot exceed 2000 characters")
     private String detailImage;
+    
+    /**
+     * Custom validation to ensure endTime is after startTime
+     */
+    public boolean isEndTimeAfterStartTime() {
+        if (startTime == null || endTime == null) {
+            return true; // Let @NotNull handle null validation
+        }
+        return endTime.after(startTime);
+    }
 } 
