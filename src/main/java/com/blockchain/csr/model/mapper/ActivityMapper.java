@@ -59,7 +59,7 @@ public class ActivityMapper {
      * @param endTime the activity end time
      * @return the calculated status string
      */
-    private String calculateActivityStatus(LocalDateTime startTime, LocalDateTime endTime) {
+    public String calculateActivityStatus(LocalDateTime startTime, LocalDateTime endTime) {
         if (startTime == null || endTime == null) {
             return ActivityStatus.NOT_STARTED.getValue();
         }
