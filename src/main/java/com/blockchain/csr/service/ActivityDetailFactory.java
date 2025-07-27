@@ -165,6 +165,8 @@ public class ActivityDetailFactory {
 
             log.info("Successfully created blockchain transaction with chainId: {}", chainId);
             
+            donationDetailDTO.setChainId(chainId); // 保存区块链交易ID到DTO
+            
             return donationDetailDTO;
             
         } catch (Exception e) {

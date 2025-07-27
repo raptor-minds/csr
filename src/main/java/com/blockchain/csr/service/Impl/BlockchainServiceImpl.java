@@ -1,5 +1,6 @@
 package com.blockchain.csr.service.Impl;
 
+import com.blockchain.csr.model.dto.BlockchainTransactionRequest;
 import com.blockchain.csr.model.dto.DonationDetailDTO;
 import com.blockchain.csr.service.BlockchainService;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.ResourceAccessException;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -32,12 +32,6 @@ public class BlockchainServiceImpl implements BlockchainService {
     @Value("${blockchain.api.base-url:http://localhost:8081}")
     private String blockchainApiBaseUrl;
 
-    @Value("${blockchain.api.api-key:}")
-    private String apiKey;
-
-    @Value("${blockchain.api.timeout:5000}")
-    private int timeout;
-
     @Override
     public String createDonationTransaction(Integer userId, DonationDetailDTO donationDetailDTO) {
         try {
@@ -45,25 +39,22 @@ public class BlockchainServiceImpl implements BlockchainService {
                     userId, donationDetailDTO.getAmount(), donationDetailDTO.getComment());
 
             // 构建请求URL
-            String url = blockchainApiBaseUrl + "/api/blockchain/transactions/add";
+            String url = blockchainApiBaseUrl + "/api/transactions/add";
 
             // 构建请求头
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            if (apiKey != null && !apiKey.isEmpty()) {
-                headers.set("X-API-Key", apiKey);
-            }
 
-            // 构建请求体
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("sender", userId);
-            requestBody.put("recipient", "admin");
-            requestBody.put("endorser", "admin");
-            requestBody.put("transaction", donationDetailDTO.toString());
-            requestBody.put("uuid", UUID.randomUUID());
-            requestBody.put("createdTime", System.currentTimeMillis());
+            // 构建请求体 - 使用BlockchainTransactionRequest DTO
+            BlockchainTransactionRequest requestDTO = BlockchainTransactionRequest.builder()
+                .sender(userId)
+                .recipient("admin")
+                .endorser("admin")
+                .transaction(donationDetailDTO)
+                .uuid(UUID.randomUUID().toString())
+                .build();
 
-            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+            HttpEntity<BlockchainTransactionRequest> request = new HttpEntity<>(requestDTO, headers);
 
             // 调用第三方区块链API
             ResponseEntity<String> response = restTemplate.exchange(
@@ -72,6 +63,9 @@ public class BlockchainServiceImpl implements BlockchainService {
                     request,
                     String.class
             );
+
+            // 添加响应日志
+            log.info("Blockchain API response status: {}, body: {}", response.getStatusCode(), response.getBody());
 
             if (response.getStatusCode().is2xxSuccessful()) {
                 String txId = response.getBody();
@@ -107,9 +101,6 @@ public class BlockchainServiceImpl implements BlockchainService {
             // 构建请求头
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            if (apiKey != null && !apiKey.isEmpty()) {
-                headers.set("X-API-Key", apiKey);
-            }
 
             HttpEntity<Void> request = new HttpEntity<>(headers);
 
