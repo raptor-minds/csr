@@ -190,6 +190,7 @@ public class EventController {
                 .visibleRoles(visibleRoles)
                 .createdAt(event.getCreatedAt() != null ? event.getCreatedAt().format(DATE_TIME_FORMATTER) : null)
                 .detailImage(event.getDetailImage())
+                .totalParticipants(eventService.getTotalParticipants(event.getId()))
                 .build();
         return ResponseEntity.ok(BaseResponse.success(detail));
     }
