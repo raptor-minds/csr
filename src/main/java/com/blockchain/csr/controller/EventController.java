@@ -132,7 +132,7 @@ public class EventController {
                     .startTime(event.getStartTime() != null ? event.getStartTime().format(DATE_TIME_FORMATTER) : null)
                     .endTime(event.getEndTime() != null ? event.getEndTime().format(DATE_TIME_FORMATTER) : null)
                     .status(calculateEventStatus(event.getStartTime(), event.getEndTime()))
-                    .isDisplay(true) // 需补充字段
+                    .isDisplay(event.getIsDisplay() != null ? event.getIsDisplay() : false) // 需补充字段
                     .bgImage(event.getAvatar())
                     .activities(activities)
                     .createdAt(event.getCreatedAt() != null ? event.getCreatedAt().format(DATE_TIME_FORMATTER) : null)
@@ -190,6 +190,7 @@ public class EventController {
                 .visibleRoles(visibleRoles)
                 .createdAt(event.getCreatedAt() != null ? event.getCreatedAt().format(DATE_TIME_FORMATTER) : null)
                 .detailImage(event.getDetailImage())
+                .totalParticipants(eventService.getTotalParticipants(event.getId()))
                 .build();
         return ResponseEntity.ok(BaseResponse.success(detail));
     }

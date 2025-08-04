@@ -24,4 +24,5 @@ public class EventDetailDto {
     private List<String> visibleRoles;
     private String createdAt;
     private String detailImage;
+    private Integer totalParticipants;
 } 
