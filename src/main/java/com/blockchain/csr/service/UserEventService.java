@@ -12,9 +12,9 @@ import com.blockchain.csr.model.entity.Event;
 import com.blockchain.csr.repository.EventRepository;
 import com.blockchain.csr.repository.UserRepository;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.text.SimpleDateFormat;
 
 /**
  * @author zhangrucheng on 2025/5/19
@@ -27,6 +27,8 @@ public class UserEventService{
     private final UserEventRepository userEventRepository;
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
+
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     public List<EventDto> getEventsByUserId(Integer userId) {
         if (!userRepository.existsById(userId)) {
@@ -51,13 +53,12 @@ public class UserEventService{
     }
 
     private EventDto convertToEventDto(Event event) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         return EventDto.builder()
                 .id(event.getId())
                 .name(event.getName())
                 .type(event.getType())
-                .startTime(event.getStartTime() != null ? sdf.format(event.getStartTime()) : null)
-                .endTime(event.getEndTime() != null ? sdf.format(event.getEndTime()) : null)
+                .startTime(event.getStartTime() != null ? event.getStartTime().format(DATE_TIME_FORMATTER) : null)
+                .endTime(event.getEndTime() != null ? event.getEndTime().format(DATE_TIME_FORMATTER) : null)
                 .status(event.getStatus())
                 .build();
     }

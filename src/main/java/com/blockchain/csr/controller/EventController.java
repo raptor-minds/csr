@@ -23,10 +23,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.text.SimpleDateFormat;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.Date;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -57,7 +56,7 @@ public class EventController {
             return ActivityStatus.NOT_STARTED.getValue();
         }
         
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Shanghai"));
         
         if (now.isBefore(startTime)) {
             return ActivityStatus.NOT_STARTED.getValue();
@@ -65,6 +64,29 @@ public class EventController {
             return ActivityStatus.FINISHED.getValue();
         } else {
             return ActivityStatus.IN_PROGRESS.getValue();
+        }
+    }
+
+    /**
+     * Calculate event status based on current time vs start/end times
+     * 
+     * @param startTime the event start time
+     * @param endTime the event end time
+     * @return the calculated status string
+     */
+    private String calculateEventStatus(LocalDateTime startTime, LocalDateTime endTime) {
+        if (startTime == null || endTime == null) {
+            return "NOT_STARTED";
+        }
+        
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Shanghai"));
+        
+        if (now.isBefore(startTime)) {
+            return "NOT_STARTED";
+        } else if (now.isAfter(endTime)) {
+            return "FINISHED";
+        } else {
+            return "IN_PROGRESS";
         }
     }
 
@@ -83,7 +105,6 @@ public class EventController {
         } else {
             eventPage = eventRepository.findAll(pageable);
         }
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         
         List<EventWithActivitiesDto> eventList = eventPage.getContent().stream().map(event -> {
             List<ActivityDto> activities = activityRepository.findByEventId(event.getId()).stream().map(activity -> {
@@ -108,12 +129,13 @@ public class EventController {
             EventWithActivitiesDto.EventWithActivitiesDtoBuilder builder = EventWithActivitiesDto.builder()
                     .id(event.getId())
                     .name(event.getName())
-                    .startTime(event.getStartTime() != null ? sdf.format(event.getStartTime()) : null)
-                    .endTime(event.getEndTime() != null ? sdf.format(event.getEndTime()) : null)
-                    .isDisplay(true) // 需补充字段
+                    .startTime(event.getStartTime() != null ? event.getStartTime().format(DATE_TIME_FORMATTER) : null)
+                    .endTime(event.getEndTime() != null ? event.getEndTime().format(DATE_TIME_FORMATTER) : null)
+                    .status(calculateEventStatus(event.getStartTime(), event.getEndTime()))
+                    .isDisplay(event.getIsDisplay() != null ? event.getIsDisplay() : false) // 需补充字段
                     .bgImage(event.getAvatar())
                     .activities(activities)
-                    .createdAt(event.getCreatedAt() != null ? sdf.format(event.getCreatedAt()) : null)
+                    .createdAt(event.getCreatedAt() != null ? event.getCreatedAt().format(DATE_TIME_FORMATTER) : null)
                     .detailImage(event.getDetailImage());
             
             // Add enhanced fields if requested
@@ -155,19 +177,20 @@ public class EventController {
             visibleLocations = List.of("未知");
             visibleRoles = List.of("未知");
         }
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         EventDetailDto detail = EventDetailDto.builder()
                 .id(event.getId())
                 .name(event.getName())
-                .startTime(event.getStartTime() != null ? sdf.format(event.getStartTime()) : null)
-                .endTime(event.getEndTime() != null ? sdf.format(event.getEndTime()) : null)
+                .startTime(event.getStartTime() != null ? event.getStartTime().format(DATE_TIME_FORMATTER) : null)
+                .endTime(event.getEndTime() != null ? event.getEndTime().format(DATE_TIME_FORMATTER) : null)
+                .status(calculateEventStatus(event.getStartTime(), event.getEndTime()))
                 .icon(event.getAvatar())
                 .description(event.getDescription())
                 .isDisplay(event.getIsDisplay() != null ? event.getIsDisplay() : false)
                 .visibleLocations(visibleLocations)
                 .visibleRoles(visibleRoles)
-                .createdAt(event.getCreatedAt() != null ? sdf.format(event.getCreatedAt()) : null)
+                .createdAt(event.getCreatedAt() != null ? event.getCreatedAt().format(DATE_TIME_FORMATTER) : null)
                 .detailImage(event.getDetailImage())
+                .totalParticipants(eventService.getTotalParticipants(event.getId()))
                 .build();
         return ResponseEntity.ok(BaseResponse.success(detail));
     }
@@ -175,6 +198,11 @@ public class EventController {
     @PostMapping
     public ResponseEntity<BaseResponse<Object>> createEvent(@Valid @RequestBody EventCreateRequest request) {
         try {
+            // Validate that endTime is after startTime
+            if (!request.isEndTimeAfterStartTime()) {
+                return ResponseEntity.ok(BaseResponse.error(400, "结束时间必须晚于开始时间"));
+            }
+            
             Event event = new Event();
             event.setName(request.getName());
             event.setStartTime(request.getStartTime());
@@ -186,7 +214,7 @@ public class EventController {
             event.setVisibleRoles(objectMapper.writeValueAsString(request.getVisibleRoles()));
             event.setDetailImage(request.getDetailImage());
             // Set created_at to current system time
-            event.setCreatedAt(new Date());
+            event.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
             eventRepository.save(event);
             return ResponseEntity.ok(BaseResponse.success("事件创建成功"));
         } catch (Exception e) {
@@ -197,6 +225,11 @@ public class EventController {
     @PutMapping("/{id}")
     public ResponseEntity<BaseResponse<Object>> updateEvent(@PathVariable Integer id, @Valid @RequestBody EventCreateRequest request) {
         try{
+            // Validate that endTime is after startTime
+            if (!request.isEndTimeAfterStartTime()) {
+                return ResponseEntity.ok(BaseResponse.error(400, "结束时间必须晚于开始时间"));
+            }
+            
             Event event = eventRepository.findById(id).orElse(null);
             if (event == null) {
                 return ResponseEntity.ok(BaseResponse.error(404, "事件不存在"));

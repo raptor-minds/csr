@@ -1315,6 +1315,7 @@ GET /api/events?eventName=Annual&page=1&pageSize=10
         "name": "Annual Tech Conference",
         "startTime": "2024-03-20 09:00",
         "endTime": "2024-03-20 18:00",
+        "status": "FINISHED",
         "isDisplay": true,
         "bgImage": "https://example.com/bg.jpg",
         "createdAt": "2024-03-15 14:30",
@@ -1362,6 +1363,7 @@ GET /api/events?eventName=Annual&page=1&pageSize=10
 | name | string | Event name |
 | startTime | string | Event start time (yyyy-MM-dd HH:mm format) |
 | endTime | string | Event end time (yyyy-MM-dd HH:mm format) |
+| status | string | Event status based on current time: "NOT_STARTED", "IN_PROGRESS", or "FINISHED" |
 | isDisplay | boolean | Whether the event is displayed |
 | bgImage | string | Background image URL |
 | createdAt | string | Event creation timestamp (yyyy-MM-dd HH:mm format) |
@@ -1415,6 +1417,7 @@ GET /api/events?eventName=Annual&page=1&pageSize=10
     "name": "Annual Tech Conference",
     "startTime": "2024-07-01 09:00",
     "endTime": "2024-07-01 17:00",
+    "status": "FINISHED",
     "icon": "/icons/tech-conference.png",
     "description": "Annual company tech conference, inviting experts from all departments to share the latest achievements...",
     "is_display": true,
@@ -1433,6 +1436,7 @@ GET /api/events?eventName=Annual&page=1&pageSize=10
 | name | string | Event name |
 | startTime | string | Event start time (yyyy-MM-dd HH:mm format) |
 | endTime | string | Event end time (yyyy-MM-dd HH:mm format) |
+| status | string | Event status based on current time: "NOT_STARTED", "IN_PROGRESS", or "FINISHED" |
 | icon | string | Event icon URL or path |
 | description | string | Event description |
 | is_display | boolean | Whether the event is displayed |
@@ -1466,7 +1470,7 @@ GET /api/events?eventName=Annual&page=1&pageSize=10
 |------|------|------|------|
 | name | string | 是 | 事件名称 |
 | startTime | string | 是 | 开始时间，格式yyyy-MM-dd HH:mm |
-| endTime | string | 是 | 结束时间，格式yyyy-MM-dd HH:mm |
+| endTime | string | 是 | 结束时间，格式yyyy-MM-dd HH:mm（必须晚于开始时间） |
 | icon | string | 是 | 事件图标 |
 | description | string | 是 | 事件描述 |
 | isDisplay | boolean | 是 | 是否展示 |
@@ -1481,6 +1485,16 @@ GET /api/events?eventName=Annual&page=1&pageSize=10
 {
   "code": 200,
   "message": "Event created successfully"
+}
+```
+
+#### Error Responses
+
+##### End Time Validation Error (400)
+```json
+{
+  "code": 400,
+  "message": "结束时间必须晚于开始时间"
 }
 ```
 
@@ -1505,9 +1519,20 @@ GET /api/events?eventName=Annual&page=1&pageSize=10
 }
 ```
 
+#### Error Responses
+
+##### End Time Validation Error (400)
+```json
+{
+  "code": 400,
+  "message": "结束时间必须晚于开始时间"
+}
+```
+
 #### Business Rules
 - All event fields can be updated except for `createdAt`
 - The `createdAt` field cannot be modified after event creation
+- End time must be after start time
 
 ---
 
@@ -1520,6 +1545,7 @@ GET /api/events?eventName=Annual&page=1&pageSize=10
     "name": "Annual Tech Conference",
     "startTime": "2024-07-01 09:00",
     "endTime": "2024-07-01 17:00",
+    "status": "FINISHED",
     "icon": "/icons/tech-conference.png",
     "description": "Annual company tech conference, inviting experts from all departments to share the latest achievements...",
     "is_display": true,

@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -21,11 +22,11 @@ public class EventCreateRequest {
     private String name;
 
     @NotNull
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "GMT+8")
-    private java.util.Date startTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime startTime;
     @NotNull
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "GMT+8")
-    private java.util.Date endTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime endTime;
 
     @NotBlank
     @Size(max = 45)
@@ -46,4 +47,14 @@ public class EventCreateRequest {
 
     @Size(max = 2000, message = "Detail image length cannot exceed 2000 characters")
     private String detailImage;
+    
+    /**
+     * Custom validation to ensure endTime is after startTime
+     */
+    public boolean isEndTimeAfterStartTime() {
+        if (startTime == null || endTime == null) {
+            return true; // Let @NotNull handle null validation
+        }
+        return endTime.isAfter(startTime);
+    }
 } 

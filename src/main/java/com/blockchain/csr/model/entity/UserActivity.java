@@ -6,7 +6,7 @@ import lombok.Data;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 
 /**
@@ -14,9 +14,7 @@ import java.util.Date;
  */
 @Entity
 @Data
-@Table(name = "user_activity", uniqueConstraints = {
-    @UniqueConstraint(name = "uk_user_activity", columnNames = {"user_id", "activity_id"})
-})
+@Table(name = "user_activity")
 public class UserActivity {
     @Id
     @Column(name = "id")
@@ -37,11 +35,11 @@ public class UserActivity {
 
     @Column(name = "endorsed_at")
     @Temporal(TemporalType.TIMESTAMP)
-    private Date endorsedAt;
+    private LocalDateTime endorsedAt;
 
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "chain_id", length = 45)
     private String chainId;
@@ -49,6 +47,9 @@ public class UserActivity {
     @Column(name = "detail", columnDefinition = "JSON")
     @Convert(converter = JsonConverter.class)
     private Serializable detail;
+
+    @Column(name = "deleted", nullable = false)
+    private Boolean deleted = false;
 
     // JPA relationships (optional - can be added later if needed)
     // @ManyToOne

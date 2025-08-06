@@ -3,6 +3,7 @@ package com.blockchain.csr.service;
 import com.blockchain.csr.model.dto.BasicDetailDTO;
 import com.blockchain.csr.model.mapper.ActivityMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,8 +14,9 @@ import com.blockchain.csr.model.enums.UserActivityState;
 import com.blockchain.csr.repository.ActivityRepository;
 import com.blockchain.csr.repository.UserActivityRepository;
 import com.blockchain.csr.repository.UserRepository;
+
+import java.time.ZoneId;
 import java.util.List;
-import java.util.Date;
 import java.time.LocalDateTime;
 // 添加分页相关import
 import org.springframework.data.domain.Pageable;
@@ -34,6 +36,7 @@ import java.util.ArrayList;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class ActivityService{
 
     private final ActivityRepository activityRepository;
@@ -51,7 +54,7 @@ public class ActivityService{
     // 创建活动
     public Integer createActivity(Activity record) {
         // Set created_at to current system time
-        record.setCreatedAt(LocalDateTime.now());
+        record.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
         Activity savedActivity = activityRepository.save(record);
         return savedActivity.getId(); // 返回实际创建的活动ID
     }
@@ -119,17 +122,23 @@ public class ActivityService{
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
             
         // 检查用户是否已经有该活动的记录
-        UserActivity existingRecord = userActivityRepository.findByUserIdAndActivityId(userId, activityId);
-        
-        if (!ObjectUtils.isEmpty(existingRecord)) {
-            // 如果已经是SIGNED_UP状态，不允许重复报名
-            if (UserActivityState.SIGNED_UP.getValue().equals(existingRecord.getState())) {
+        List<UserActivity> existingRecords = userActivityRepository.findByUserIdAndActivityId(userId, activityId);
+        if (existingRecords.size() > 1) {
+            log.warn("Multiple active user_activity for user ID: {}", userId);
+        }
+        if (!ObjectUtils.isEmpty(existingRecords)) {
+            UserActivity existingRecord = existingRecords.get(0);
+            // 如果已经是SIGNED_UP状态且未被删除，不允许重复报名
+            if (UserActivityState.SIGNED_UP.getValue().equals(existingRecord.getState()) && 
+                (existingRecord.getDeleted() == null || !existingRecord.getDeleted())) {
                 throw new IllegalArgumentException("User has already signed up for this activity");
             }
-            // 如果是WITHDRAWN状态，允许重新报名，更新状态为SIGNED_UP
-            else if (UserActivityState.WITHDRAWN.getValue().equals(existingRecord.getState())) {
+            // 如果是WITHDRAWN状态或者被删除，允许重新报名
+            else if (UserActivityState.WITHDRAWN.getValue().equals(existingRecord.getState()) || 
+                     (existingRecord.getDeleted() != null && existingRecord.getDeleted())) {
                 existingRecord.setState(UserActivityState.SIGNED_UP.getValue());
-                existingRecord.setCreatedAt(new Date()); // 更新报名时间
+                existingRecord.setDeleted(false); // 重新激活记录
+                existingRecord.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Shanghai"))); // 更新报名时间
                 userActivityRepository.save(existingRecord);
                 return;
             }
@@ -140,7 +149,7 @@ public class ActivityService{
         userActivity.setUserId(userId);
         userActivity.setActivityId(activityId);
         userActivity.setState(UserActivityState.SIGNED_UP.getValue());
-        userActivity.setCreatedAt(new Date());
+        userActivity.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
         // chain_id, detail, endorsed_at, endorsed_by 字段设为空，符合要求
         
         try {
@@ -166,20 +175,18 @@ public class ActivityService{
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         
         // 查找用户的活动记录
-        UserActivity existingRecord = userActivityRepository.findByUserIdAndActivityId(userId, activityId);
+        List<UserActivity> existingRecords = userActivityRepository.findByUserIdAndActivityId(userId, activityId);
+
         
-        if (ObjectUtils.isEmpty(existingRecord)) {
+        if (ObjectUtils.isEmpty(existingRecords)) {
             throw new IllegalArgumentException("User has not signed up for this activity");
         }
-        
-        // 只有SIGNED_UP状态才能退出
-        if (!UserActivityState.SIGNED_UP.getValue().equals(existingRecord.getState())) {
-            throw new IllegalArgumentException("User is not currently signed up for this activity");
-        }
-        
-        // 更新状态为WITHDRAWN
-        existingRecord.setState(UserActivityState.WITHDRAWN.getValue());
-        userActivityRepository.save(existingRecord);
+
+        existingRecords.stream().forEach(existingRecord -> {
+            existingRecord.setState(UserActivityState.WITHDRAWN.getValue());
+            existingRecord.setDeleted(true);
+        });
+        userActivityRepository.saveAll(existingRecords);
     }
 
     /**
@@ -252,9 +259,10 @@ public class ActivityService{
             // Get all activities the user has signed up for
             List<UserActivity> userActivities = userActivityRepository.findByUserId(userId);
             
-            // Filter to only SIGNED_UP activities
+            // Filter to only SIGNED_UP activities that are not deleted
             List<UserActivity> signedUpActivities = userActivities.stream()
-                    .filter(ua -> "SIGNED_UP".equals(ua.getState()))
+                    .filter(ua -> "SIGNED_UP".equals(ua.getState()) && 
+                                  (ua.getDeleted() == null || !ua.getDeleted()))
                     .collect(Collectors.toList());
             
             // Create map for quick lookup

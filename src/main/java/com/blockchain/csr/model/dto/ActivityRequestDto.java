@@ -44,11 +44,11 @@ public class ActivityRequestDto {
     private String description;
 
     @NotNull(message = "开始时间必须提供", groups = {CreateGroup.class})
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime startTime;
 
     @NotNull(message = "结束时间必须提供", groups = {CreateGroup.class})
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime endTime;
 
     @NotNull(message = "可见地区必须提供", groups = {CreateGroup.class})

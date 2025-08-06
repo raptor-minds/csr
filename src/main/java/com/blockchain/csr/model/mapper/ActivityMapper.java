@@ -64,7 +64,7 @@ public class ActivityMapper {
             return ActivityStatus.NOT_STARTED.getValue();
         }
         
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Shanghai"));
         
         if (now.isBefore(startTime)) {
             return ActivityStatus.NOT_STARTED.getValue();
