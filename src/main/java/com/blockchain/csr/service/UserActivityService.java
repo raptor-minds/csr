@@ -105,16 +105,9 @@ public class UserActivityService{
                 throw new IllegalArgumentException("Activity has no template assigned");
             }
             
-            // 4. Create detail using factory with blockchain integration for donation activities
-            BasicDetailDTO detail;
-            if (templateId == 2) {
-                // 对于捐赠活动，使用带有区块链功能的方法
-                detail = activityDetailFactory.createDetail(templateId, request.getDetail(), request.getUserId(), request.getActivityId());
-            } else {
-                // 对于其他活动，使用普通方法
-                detail = activityDetailFactory.createDetail(templateId, request.getDetail());
-            }
-            
+            // 4. Create detail using factory with blockchain integration for activities
+            BasicDetailDTO detail= activityDetailFactory.createDetail(templateId, request.getDetail(), request.getUserId(), request.getActivityId());
+
             // 5. Update the user activity record
             userActivity.setDetail(detail);
             userActivityRepository.save(userActivity);
