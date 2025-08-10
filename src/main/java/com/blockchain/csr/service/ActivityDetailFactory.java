@@ -2,6 +2,9 @@ package com.blockchain.csr.service;
 
 import com.blockchain.csr.model.dto.BasicDetailDTO;
 import com.blockchain.csr.model.dto.DonationDetailDTO;
+import com.blockchain.csr.model.dto.DurationDetailDTO;
+import com.blockchain.csr.model.entity.Activity;
+import com.blockchain.csr.repository.ActivityRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +13,7 @@ import org.springframework.stereotype.Component;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Factory for creating ActivityDetailBase objects based on template ID
@@ -21,6 +25,7 @@ public class ActivityDetailFactory {
 
     private final ObjectMapper objectMapper;
     private final BlockchainService blockchainService;
+    private final ActivityRepository activityRepository;
     
     /**
      * Create BasicDetailDTO from template ID and detail map (from request)
@@ -76,12 +81,8 @@ public class ActivityDetailFactory {
         if (comment == null || comment.trim().isEmpty()) {
             throw new IllegalArgumentException("Comment is required");
         }
-        
-        return switch (templateId) {
-            case 1 -> createBasicDetail(comment);
-            case 2 -> createDonationDetailWithBlockchain(comment, detailMap, userId, activityId);
-            default -> throw new IllegalArgumentException("Unsupported template ID: " + templateId);
-        };
+
+        return createDonationDetailWithBlockchain(templateId, detailMap, userId, activityId);
     }
     
     /**
@@ -134,23 +135,32 @@ public class ActivityDetailFactory {
             throw new IllegalArgumentException("Amount must be greater than 0.01");
         }
 
-        DonationDetailDTO donationDetailDTO = new DonationDetailDTO(comment, amount);
-
-        return donationDetailDTO;
+        return new DonationDetailDTO(comment, amount);
     }
     
     /**
      * Create DonationDetailDTO for template ID 2 with blockchain integration
      */
-    private DonationDetailDTO createDonationDetailWithBlockchain(String comment, Map<String, Object> detailMap, Integer userId, Integer activityId) {
-        Object amountObj = detailMap.get("amount");
-        if (amountObj == null) {
-            throw new IllegalArgumentException("Amount is required for donation activities");
-        }
-        
-        BigDecimal amount = convertToAmount(amountObj);
-        if (amount.compareTo(BigDecimal.valueOf(0.01)) < 0) {
-            throw new IllegalArgumentException("Amount must be greater than 0.01");
+    private BasicDetailDTO createDonationDetailWithBlockchain(Integer templateId, Map<String, Object> detailMap, Integer userId, Integer activityId) {
+        String comment = (String) detailMap.get("comment");
+        BigDecimal amount = null;
+        Integer duration = null;
+        if(templateId == 2) {
+            Object amountObj = detailMap.get("amount");
+            if (amountObj == null) {
+                throw new IllegalArgumentException("Amount is required for donation activities");
+            }
+
+          amount = convertToAmount(amountObj);
+            if (amount.compareTo(BigDecimal.valueOf(0.01)) < 0) {
+                throw new IllegalArgumentException("Amount must be greater than 0.01");
+            }
+        }else{
+            Optional<Activity> activity = activityRepository.findById(activityId);
+            if(activity.isPresent()) {
+                duration = activity.get().getDuration();
+                amount = BigDecimal.valueOf(duration);
+            }
         }
 
         // 调用区块链服务创建交易
@@ -166,6 +176,10 @@ public class ActivityDetailFactory {
             log.info("Successfully created blockchain transaction with chainId: {}", chainId);
             
             donationDetailDTO.setChainId(chainId); // 保存区块链交易ID到DTO
+
+            if(templateId != 2){
+                return new DurationDetailDTO(comment, duration, chainId);
+            }
             
             return donationDetailDTO;
             

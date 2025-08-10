@@ -85,4 +85,14 @@ public interface UserActivityRepository extends JpaRepository<UserActivity, Inte
      * Find the latest user activity by userId and activityId (by createdAt desc)
      */
     UserActivity findTopByUserIdAndActivityIdOrderByCreatedAtDesc(Integer userId, Integer activityId);
-} 
+    
+    /**
+     * Find user activities where detail is not null and detail does not contain chainId,
+     * joined with activity table to get duration where template_id is not equal to 2
+     *
+     * @return List of UserActivity matching the criteria
+     */
+    @Query("SELECT ua FROM UserActivity ua JOIN Activity a ON ua.activityId = a.id " +
+           "WHERE ua.detail IS NOT NULL AND a.templateId <> 2")
+    List<UserActivity> findWithDetailNoChainInDetailAndTemplateNot2();
+}
