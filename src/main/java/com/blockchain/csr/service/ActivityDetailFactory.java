@@ -104,7 +104,7 @@ public class ActivityDetailFactory {
 
         try {
             return switch (templateId) {
-                case 1 -> objectMapper.convertValue(detail, BasicDetailDTO.class);
+                case 1 -> objectMapper.convertValue(detail, DurationDetailDTO.class);
                 case 2 -> objectMapper.convertValue(detail, DonationDetailDTO.class);
                 default -> throw new IllegalArgumentException("Unsupported template ID: " + templateId);
             };
